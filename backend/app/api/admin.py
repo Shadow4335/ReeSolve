@@ -1,11 +1,13 @@
-"""Admin endpoints: clock, tick (stats/seed/reset arrive in M7)."""
-from fastapi import APIRouter, Depends
+"""Admin endpoints: clock, tick, stats, reset, seed."""
+from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app import clock
-from app.db import get_db
+from app.db import get_db, reset_db
 from app.schemas import ClockAdvanceIn, ClockOut
-from app.services import sla
+from app.services import sla, stats
 from app.services.events import log_event
 
 router = APIRouter()
@@ -43,3 +45,28 @@ def tick(db: Session = Depends(get_db)):
     sla.run_watchdog(db)
     db.commit()
     return _clock_out()
+
+
+@router.get("/admin/stats")
+def get_stats(db: Session = Depends(get_db)) -> dict[str, Any]:
+    return stats.compute_stats(db)
+
+
+@router.post("/admin/reset")
+def reset(db: Session = Depends(get_db)) -> dict[str, Any]:
+    """Wipe the database and clock; reload departments and vulnerable zones only."""
+    db.rollback()
+    reset_db(db.get_bind())
+    return {"reset": True}
+
+
+@router.post("/admin/seed")
+def seed_baseline(db: Session = Depends(get_db)) -> dict[str, Any]:
+    """Load baseline data via the seed script (imported lazily so the app boots without it)."""
+    try:
+        from scripts.seed import seed
+    except ImportError:
+        raise HTTPException(status_code=501, detail="seed script (scripts/seed.py) is not installed")
+    seed(db)
+    db.commit()
+    return {"seeded": True}
