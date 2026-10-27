@@ -10,6 +10,20 @@ contradicts a closure.
 > **Prototype.** Built for a hackathon. It is not an official Government of India website and uses no state emblem.
 > It runs on SQLite with simulated citizen verification, no real SMS or email, and a demo-only sign-in.
 
+## Live demo
+
+| | |
+|---|---|
+| **App** | <https://ree-solve.vercel.app> (frontend on Vercel) |
+| **API** | <https://reesolve-api-lvvy.onrender.com> (backend on Render; interactive docs at [`/docs`](https://reesolve-api-lvvy.onrender.com/docs)) |
+
+Open the app and use a one-click **Try as resident / Roads dept / admin** account (nothing to register). The admin
+page has *Reset demo* and *Load seed data* to start the storyline fresh.
+
+> The backend runs on Render's free tier: it **sleeps after about 15 minutes idle**, so the first request can take
+> 30 to 60 seconds, and its data resets to the demo baseline whenever it restarts. Deployment details are in
+> [`docs/deployment.md`](docs/deployment.md).
+
 ![Live operations view: map of open and fixed incidents in Central New Delhi, live audit feed, department performance](docs/screenshots/09-admin-map-and-feed.jpg)
 
 ## 1. What problem does it solve, and for whom?
