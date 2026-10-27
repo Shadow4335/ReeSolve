@@ -31,3 +31,15 @@
     @apply font-display;
   }
 }
+
+/* Reduced motion: no movement, simple fades only. Redefining the keyframes after Tailwind's output wins. */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes rise { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes msgIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes pop { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes shake { from, to { transform: none; } }
+  @keyframes leave { from { opacity: 1; } to { opacity: 0; } }
+  .animate-drift, .animate-float, .animate-driftx, .animate-glow { animation: none !important; }
+  .slide-pill, .height-anim { transition: none !important; }
+}
