@@ -283,3 +283,4 @@ def test_road_damage_category_present(db):
     assert "road_damage" in cats, (
         f"Expected a road_damage incident; found {cats}"
     )
+
