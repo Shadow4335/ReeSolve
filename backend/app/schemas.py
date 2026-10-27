@@ -20,6 +20,7 @@ class ReportIn(BaseModel):
     photo_url: str | None = None
     reporter_name: str | None = None
     reporter_contact: str | None = None
+    category_hint: str | None = None   # resident's picker choice: a category, or 'water'
 
 
 class ClosureIn(BaseModel):

@@ -21,3 +21,16 @@ def structure_report(text: str) -> dict[str, Any]:
     severity = min(config.DEFAULT_SEVERITY + bumps, config.MAX_SEVERITY)
     summary = " ".join(text.split())[: config.SUMMARY_MAX_CHARS]
     return {"category": best, "severity": severity, "summary": summary}
+
+
+def apply_category_hint(category: str, hint: str | None) -> str:
+    """Resident's picker choice overrides keyword classification.
+
+    Accepts any configured category; 'water' means water & drainage and lets the keywords pick
+    drain_blockage vs water_leak (default water_leak). Unknown hints are ignored.
+    """
+    if hint in config.CATEGORIES:
+        return hint
+    if hint == "water":
+        return "drain_blockage" if category == "drain_blockage" else "water_leak"
+    return category

@@ -25,7 +25,7 @@ const COLORS = {
 
 export default function EventBadge({ type }) {
   return (
-    <span className={`whitespace-nowrap rounded px-2 py-0.5 text-xs font-bold ${COLORS[type] || 'bg-slate-200'}`}>
+    <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ${COLORS[type] || 'bg-slate-200'}`}>
       {type.replace(/_/g, ' ')}
     </span>
   )

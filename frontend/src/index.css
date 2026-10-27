@@ -1,3 +1,33 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --background: oklch(97.5% 0.008 85);
+  --foreground: oklch(26% 0.01 75);
+  --card: oklch(99.3% 0.004 85);
+  --border: oklch(90% 0.012 85);
+  --primary: oklch(50% 0.05 125);
+  --primary-foreground: oklch(98.5% 0.006 85);
+  --muted: oklch(94.5% 0.012 85);
+  --muted-foreground: oklch(50% 0.012 75);
+  --accent: oklch(93% 0.025 120);
+  --sidebar: oklch(96% 0.01 85);
+  --sidebar-accent: oklch(92% 0.022 115);
+  --destructive: oklch(55% 0.15 30);
+  --peach: oklch(94% 0.03 50);
+  --peach-foreground: oklch(40% 0.08 40);
+  --warn: oklch(93% 0.06 85);
+  --warn-foreground: oklch(40% 0.09 70);
+  --danger: oklch(93% 0.04 30);
+  --danger-foreground: oklch(42% 0.14 30);
+}
+
+@layer base {
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+  h1, h2, h3 {
+    @apply font-display;
+  }
+}

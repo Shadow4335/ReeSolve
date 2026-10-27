@@ -3,21 +3,22 @@ import { MapContainer, TileLayer, CircleMarker, Polyline, Popup } from 'react-le
 import { api } from '../api'
 import { usePolling } from '../hooks'
 import EventBadge, { fmtTs } from '../components/EventBadge'
+import { Button, Card, PageHeader } from '../components/ui'
 import { CLUSTER_COLOR, DEMO_CENTER, PRIORITY_COLOR } from '../constants'
 
-function Stat({ label, value, tone = 'text-slate-900' }) {
+function Stat({ label, value, tone = 'text-foreground' }) {
   return (
-    <div className="rounded-lg bg-white p-4 shadow">
-      <div className={`text-3xl font-extrabold ${tone}`}>{value ?? '-'}</div>
-      <div className="text-sm text-slate-600">{label}</div>
-    </div>
+    <Card className="p-4">
+      <div className={`font-display text-4xl font-semibold ${tone}`}>{value ?? '-'}</div>
+      <div className="mt-1 text-sm text-muted-foreground">{label}</div>
+    </Card>
   )
 }
 
 function Bar({ pct, color }) {
   return (
-    <div className="h-4 w-full rounded bg-slate-200">
-      <div className={`h-4 rounded ${color}`} style={{ width: `${pct ?? 0}%` }} />
+    <div className="h-3 w-full rounded-full bg-muted">
+      <div className={`h-3 rounded-full ${color}`} style={{ width: `${pct ?? 0}%` }} />
     </div>
   )
 }
@@ -26,7 +27,7 @@ function IncidentMap({ incidents }) {
   const byCluster = {}
   incidents.forEach((i) => i.cluster_id && (byCluster[i.cluster_id] ||= []).push(i))
   return (
-    <MapContainer center={DEMO_CENTER} zoom={14} scrollWheelZoom={false} style={{ height: 440 }} className="rounded-lg shadow">
+    <MapContainer center={DEMO_CENTER} zoom={14} scrollWheelZoom={false} style={{ height: 440 }} className="rounded-xl">
       <TileLayer
         attribution="&copy; OpenStreetMap contributors"
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -96,21 +97,21 @@ function Feed() {
     }
   }, [])
   return (
-    <div className="h-[600px] overflow-y-auto rounded-lg bg-white p-3 shadow">
-      <h3 className="mb-2 text-lg font-bold">Live feed</h3>
-      {!events.length && <p className="text-slate-500">No events yet.</p>}
+    <Card className="h-[640px] overflow-y-auto p-4">
+      <h3 className="mb-3 text-xl font-semibold">Live feed</h3>
+      {!events.length && <p className="text-muted-foreground">No events yet.</p>}
       <ul className="space-y-2">
         {events.map((e) => (
-          <li key={e.id} className="border-b border-slate-100 pb-2 text-sm">
+          <li key={e.id} className="border-b border-border pb-2 text-sm">
             <div className="flex items-center gap-2">
               <EventBadge type={e.type} />
-              <span className="text-xs text-slate-500">{fmtTs(e.ts)} · {e.actor}</span>
+              <span className="text-xs text-muted-foreground">{fmtTs(e.ts)} · {e.actor}</span>
             </div>
-            <div className="mt-1 text-slate-800">{e.reason}</div>
+            <div className="mt-1">{e.reason}</div>
           </li>
         ))}
       </ul>
-    </div>
+    </Card>
   )
 }
 
@@ -136,75 +137,55 @@ export default function Admin() {
   const advance = (h) => act(`+${h}h`, () => api.post('/admin/clock/advance', { hours: h }))
   const t = stats?.totals
 
-  const btn = 'rounded-lg px-4 py-2 text-lg font-bold text-white disabled:opacity-50'
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3 rounded-lg bg-white p-4 shadow">
-        <span className="text-lg font-bold">Simulated clock</span>
+    <div className="space-y-5">
+      <PageHeader eyebrow="City admin" title="Operations" sub="Every decision the system makes, with the reason, as it happens." />
+      <Card className="flex flex-wrap items-center gap-2 p-4">
+        <span className="mr-2 font-semibold">Simulated clock</span>
         {[1, 24, 72].map((h) => (
-          <button key={h} disabled={busy} onClick={() => advance(h)} className={`${btn} bg-slate-800`}>
-            +{h}h
-          </button>
+          <Button key={h} variant="dark" disabled={busy} onClick={() => advance(h)}>+{h}h</Button>
         ))}
-        <button disabled={busy} onClick={() => act('Clock reset', () => api.post('/admin/clock/reset'))} className={`${btn} bg-slate-500`}>
-          Reset
-        </button>
-        <button disabled={busy} onClick={() => act('Watchdog', () => api.post('/admin/tick'))} className={`${btn} bg-blue-700`}>
-          Run watchdog
-        </button>
-        <span className="mx-2 h-8 border-l border-slate-300" />
-        <button
-          disabled={busy}
-          onClick={() => act('Reset demo', async () => { await api.post('/admin/reset'); window.__resetFeed?.() })}
-          className={`${btn} bg-red-700`}
-        >
-          Reset demo
-        </button>
-        <button disabled={busy} onClick={() => act('Seed', () => api.post('/admin/seed'))} className={`${btn} bg-green-700`}>
-          Load seed data
-        </button>
-        <span className="text-sm text-slate-600">{msg}</span>
-      </div>
+        <Button variant="soft" disabled={busy} onClick={() => act('Clock reset', () => api.post('/admin/clock/reset'))}>Reset</Button>
+        <Button disabled={busy} onClick={() => act('Watchdog', () => api.post('/admin/tick'))}>Run watchdog</Button>
+        <span className="mx-2 h-7 border-l border-border" />
+        <Button variant="danger" disabled={busy} onClick={() => act('Reset demo', async () => { await api.post('/admin/reset'); window.__resetFeed?.() })}>Reset demo</Button>
+        <Button variant="soft" disabled={busy} onClick={() => act('Seed', () => api.post('/admin/seed'))}>Load seed data</Button>
+        <span className="text-sm text-muted-foreground">{msg}</span>
+      </Card>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
         <Stat label="Incidents" value={t?.incidents} />
         <Stat label="Open tasks" value={t?.open_tasks} />
-        <Stat label="Past SLA now" value={t?.currently_breached} tone="text-red-600" />
-        <Stat label="Reopens" value={t?.reopens} tone="text-orange-600" />
-        <Stat label="Low-confidence closes" value={t?.low_confidence_closures} tone="text-amber-600" />
+        <Stat label="Past SLA now" value={t?.currently_breached} tone="text-destructive" />
+        <Stat label="Reopens" value={t?.reopens} tone="text-warn-foreground" />
+        <Stat label="Low-confidence closes" value={t?.low_confidence_closures} tone="text-warn-foreground" />
         <Stat label="Avg resolution (h)" value={stats?.avg_resolution_hours} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
-          <IncidentMap incidents={incidents || []} />
-          <div className="rounded-lg bg-white p-4 shadow">
-            <h3 className="mb-3 text-lg font-bold">Department performance</h3>
-            <div className="grid grid-cols-[170px_1fr_1fr] items-center gap-x-4 gap-y-2 text-sm">
+          <Card className="p-3"><IncidentMap incidents={incidents || []} /></Card>
+          <Card className="p-5">
+            <h3 className="mb-3 text-xl font-semibold">Department performance</h3>
+            <div className="grid grid-cols-[170px_1fr_1fr] items-center gap-x-4 gap-y-3 text-sm">
               <span />
-              <span className="font-semibold text-green-700">SLA compliance %</span>
-              <span className="font-semibold text-orange-700">Reopen rate %</span>
+              <span className="font-semibold text-primary">SLA compliance %</span>
+              <span className="font-semibold text-destructive">Reopen rate %</span>
               {(stats?.by_department || []).map((d) => (
                 <div key={d.code} className="contents">
-                  <span className="font-semibold">{d.name}<span className="ml-1 text-slate-500">({d.total_tasks})</span></span>
-                  <div className="flex items-center gap-2">
-                    <Bar pct={d.sla_compliance_pct} color="bg-green-500" />
-                    <span className="w-10 text-right">{d.sla_compliance_pct ?? '-'}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Bar pct={d.reopen_rate_pct} color="bg-orange-500" />
-                    <span className="w-10 text-right">{d.reopen_rate_pct ?? '-'}</span>
-                  </div>
+                  <span className="font-semibold">{d.name}<span className="ml-1 font-normal text-muted-foreground">({d.total_tasks})</span></span>
+                  <div className="flex items-center gap-2"><Bar pct={d.sla_compliance_pct} color="bg-primary" /><span className="w-10 text-right">{d.sla_compliance_pct ?? '-'}</span></div>
+                  <div className="flex items-center gap-2"><Bar pct={d.reopen_rate_pct} color="bg-destructive" /><span className="w-10 text-right">{d.reopen_rate_pct ?? '-'}</span></div>
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-sm text-slate-700">
+            <p className="mt-4 text-sm">
               Escalations:{' '}
               {Object.entries(stats?.escalations_by_level || {}).map(([k, v]) => (
                 <span key={k} className="mr-3"><b>{v}</b> to {k}</span>
               ))}
             </p>
-          </div>
+          </Card>
         </div>
         <Feed />
       </div>

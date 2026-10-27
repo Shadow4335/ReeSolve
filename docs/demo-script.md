@@ -14,7 +14,7 @@ cd frontend && npm run dev                # terminal 2 -> http://localhost:5173
 
 1. Open the app, switch the role to **Admin**. Click **Reset demo** then **Load seed data** (about 12 incidents appear on the map).
 2. The clock badge in the header should show the simulated time. Click the clock **Reset** button.
-3. Keep three tabs ready: **Admin**, **Department: WATER / ROADS**, **Citizen** (Report / Track).
+3. Keep three tabs ready: **Admin**, **Department: WATER / ROADS**, **Resident** (Report a problem / My requests). In *My requests*, open **Demo tools** to follow any incident as a resident.
 
 Two ways to run the story:
 
@@ -27,7 +27,7 @@ Everything works offline; map tiles are the only thing that need the internet.
 
 ## Step 1. Five citizens report the same pothole (30 s)
 
-**Do:** Role = Citizen, **Report** tab. Click **Use demo location**, type
+**Do:** Role = Resident, **Report a problem**. Pick **Roads & sidewalks**, click **Use demo location**, type
 *"Huge pothole on Rosewood Lane near the bakery"*, submit. Repeat 4 more times with different wording, nudging the pin a few metres.
 
 **Say:** "Citizens describe the same problem in different words. We don't create five tickets."
@@ -52,7 +52,7 @@ Everything works offline; map tiles are the only thing that need the internet.
 
 ## Step 4. Water fixes it properly (40 s)
 
-**Do:** Role = Department: WATER. **Start**, then **Close**: note *"Pipe section replaced"*, photo URL (**Use demo photo**), **Use incident location**, submit. Switch to Citizen → **Track** the leak incident → click **Yes, it's fixed**.
+**Do:** Role = Department: WATER. **Start**, then **Close**: note *"Pipe section replaced"*, photo URL (**Use demo photo**), **Use incident location**, submit. Switch to Resident → **My requests** → follow the leak incident (Demo tools) → click **Yes, it's fixed**.
 
 **Say:** "Closing doesn't close. The department's claim goes to *pending verification* and we ask the people who reported it."
 
@@ -60,7 +60,7 @@ Everything works offline; map tiles are the only thing that need the internet.
 
 ## Step 5. Roads claims it's done, a citizen disagrees (40 s)
 
-**Do:** Role = Department: ROADS → **Start**, **Close** with a photo and the incident location. Citizen → Track the pothole → **No, still broken**, comment *"The patch already crumbled"*.
+**Do:** Role = Department: ROADS → **Start**, **Close** with a photo and the incident location. Resident → **My requests** → the pothole → **No, still a problem**, comment *"The patch already crumbled"*.
 
 **Say:** "A department can say 'done'. The citizens say 'no'. The system believes the evidence."
 
@@ -68,7 +68,7 @@ Everything works offline; map tiles are the only thing that need the internet.
 
 ## Step 6. A new report after closure (40 s)
 
-**Do:** Roads closes again; confirm as 3 citizens (Track → Yes ×3 with different reporters) until *CLOSED / VERIFIED*. Then Citizen → Report *"The pothole on Rosewood Lane is back"* at the same spot.
+**Do:** Roads closes again; confirm as 3 citizens (My requests → *Answering as reporter* → Yes, ×3 with different reporters) until *CLOSED / VERIFIED*. Then Resident → **Report a problem**: *"The pothole on Rosewood Lane is back"* at the same spot.
 
 **Say:** "Even after a verified closure, new evidence reopens the case. And if it keeps failing, it goes up the chain."
 
@@ -76,7 +76,7 @@ Everything works offline; map tiles are the only thing that need the internet.
 
 ## Step 7. The commissioner's view (30 s)
 
-**Do:** Admin: scroll the stats, then open the pothole in **Track** and scroll its timeline.
+**Do:** Admin: scroll the stats, then open the pothole in **My requests** and expand **Why?** on a timeline line.
 
 **Say:** "SLA compliance and reopen rate per department, and every decision is explained in the audit trail."
 

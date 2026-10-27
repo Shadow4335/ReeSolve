@@ -61,3 +61,22 @@ def test_get_unknown_report_404(client):
 
 def test_post_invalid_body_422(client):
     assert client.post("/api/reports", json={"text": "x"}).status_code == 422
+
+
+def test_category_hint_overrides_keywords(db):
+    r = submit_report(db, "Something is wrong near the market", 28.62, 77.21, category_hint="streetlight")
+    assert r["incident"].category == "streetlight" and r["report"].category == "streetlight"
+    assert submit_report(db, "Water pipe burst", 28.65, 77.25, category_hint="garbage")["incident"].category == "garbage"
+
+
+def test_water_hint_picks_drain_or_leak(db):
+    drain = submit_report(db, "Sewer is clogged and overflowing", 28.62, 77.21, category_hint="water")
+    leak = submit_report(db, "Something is dripping near the tank", 28.70, 77.30, category_hint="water")
+    assert drain["incident"].category == "drain_blockage" and leak["incident"].category == "water_leak"
+
+
+def test_unknown_hint_ignored_and_api_accepts_hint(client):
+    body = {"text": "Big pothole on the road", "lat": 28.62, "lng": 77.21, "category_hint": "nonsense"}
+    assert client.post("/api/reports", json=body).json()["incident"]["category"] == "road_damage"
+    body = {"text": "Please look at this", "lat": 28.7, "lng": 77.3, "category_hint": "road_damage"}
+    assert client.post("/api/reports", json=body).json()["incident"]["category"] == "road_damage"

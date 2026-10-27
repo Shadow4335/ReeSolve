@@ -5,7 +5,10 @@ import icon from 'leaflet/dist/images/marker-icon.png'
 import iconRetina from 'leaflet/dist/images/marker-icon-2x.png'
 import shadow from 'leaflet/dist/images/marker-shadow.png'
 import { api } from '../api'
+import Icon from '../components/Icon'
+import { Button, Card, Chip, IconTile, PageHeader } from '../components/ui'
 import { DEMO_CENTER, DEMO_SCENARIO_ORIGIN } from '../constants'
+import { DEPT_BY_CATEGORY, REPORT_CATEGORIES } from '../lib/friendly'
 
 L.Icon.Default.mergeOptions({ iconUrl: icon, iconRetinaUrl: iconRetina, shadowUrl: shadow })
 
@@ -16,12 +19,9 @@ function ClickToMove({ onMove }) {
 
 function PinMap({ pos, setPos }) {
   const ref = useRef(null)
-  const handlers = useMemo(
-    () => ({ dragend() { const m = ref.current; if (m) { const p = m.getLatLng(); setPos([p.lat, p.lng]) } } }),
-    [setPos],
-  )
+  const handlers = useMemo(() => ({ dragend() { const m = ref.current; if (m) { const p = m.getLatLng(); setPos([p.lat, p.lng]) } } }), [setPos])
   return (
-    <MapContainer center={pos} zoom={15} scrollWheelZoom={false} style={{ height: 320 }} className="rounded-lg shadow">
+    <MapContainer center={pos} zoom={15} scrollWheelZoom={false} style={{ height: 280 }} className="rounded-xl">
       <TileLayer attribution="&copy; OpenStreetMap contributors" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <ClickToMove onMove={setPos} />
       <Marker draggable position={pos} ref={ref} eventHandlers={handlers} />
@@ -29,49 +29,84 @@ function PinMap({ pos, setPos }) {
   )
 }
 
-function Decision({ result, onTrack }) {
-  const { incident, decision, explanation, cluster } = result
-  const dup = decision === 'duplicate'
+function Step({ n, title, sub, children }) {
   return (
-    <div className="space-y-3 rounded-xl border-4 border-blue-500 bg-blue-50 p-5">
-      <h3 className="text-2xl font-extrabold text-blue-900">
-        {dup
-          ? `Merged with an existing incident (${incident.report_count} reports, ${explanation.distance_m} m away, similarity ${explanation.text_similarity})`
-          : 'New incident created'}
-      </h3>
-      <p className="text-lg">
-        <b>#{incident.id}</b> {incident.summary}
-        <br />
-        Category <b>{incident.category.replace('_', ' ')}</b> · priority <b>{incident.priority}</b>
-      </p>
-      {dup && <p className="text-sm text-slate-700">Why: {explanation.rule.replace(/_/g, ' ')}, score {explanation.score}.</p>}
-      {cluster && (
-        <p className="rounded bg-purple-100 p-3 text-purple-900">
-          <b>Related to a nearby incident:</b> {cluster.coordination_note}
-        </p>
-      )}
-      <button onClick={onTrack} className="rounded-lg bg-blue-700 px-5 py-3 text-lg font-bold text-white">Track this incident</button>
-    </div>
+    <Card className="p-6">
+      <div className="flex items-start gap-3">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">{n}</span>
+        <div>
+          <h2 className="text-lg font-semibold">{title}</h2>
+          <p className="text-sm text-muted-foreground">{sub}</p>
+        </div>
+      </div>
+      <div className="mt-4">{children}</div>
+    </Card>
   )
 }
 
-export default function Report({ onSubmitted }) {
+const input = 'w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary'
+
+function Decision({ result, onFollow }) {
+  const { incident, decision, explanation, cluster } = result
+  const dup = decision === 'duplicate'
+  return (
+    <Card className="border-primary/40 bg-accent p-6">
+      <Chip tone="ok" dot={false}><Icon name="check" className="h-3.5 w-3.5" /> Report received</Chip>
+      <h2 className="mt-3 text-2xl font-semibold">
+        {dup ? `You're one of ${incident.report_count} residents who reported this` : 'Thanks. Your report is in.'}
+      </h2>
+      <p className="mt-2">
+        {dup
+          ? `We merged it with a report ${explanation.distance_m} m away (similarity ${explanation.text_similarity}), so it counts for more.`
+          : `We've sent it to ${DEPT_BY_CATEGORY[incident.category]}.`}
+        {' '}Priority: <b>{incident.priority.toLowerCase()}</b>.
+      </p>
+      {dup && <p className="mt-1 text-xs text-muted-foreground">Why: {explanation.rule.replace(/_/g, ' ')}, score {explanation.score}.</p>}
+      {cluster && (
+        <p className="mt-3 rounded-xl bg-card p-3 text-sm">
+          <b>Linked to a related problem nearby.</b> {cluster.coordination_note}
+        </p>
+      )}
+      <Button className="mt-5" onClick={() => onFollow(incident.id, result.report.id)}>Follow this request <Icon name="arrow" className="h-4 w-4" /></Button>
+    </Card>
+  )
+}
+
+export default function Report({ category, onFollow }) {
+  const [cat, setCat] = useState(category)
   const [pos, setPos] = useState(DEMO_CENTER)
-  const [mapKey, setMapKey] = useState(0) // bump to re-centre the map (demo location button)
+  const [mapKey, setMapKey] = useState(0)
+  const [landmark, setLandmark] = useState('')
   const [text, setText] = useState('')
   const [name, setName] = useState('')
+  const [contact, setContact] = useState('')
   const [photo, setPhoto] = useState('')
   const [result, setResult] = useState(null)
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
+  const [geoMsg, setGeoMsg] = useState('')
+
+  const picked = REPORT_CATEGORIES.find((c) => c.key === cat)
+  const move = (p, recenter = false) => { setPos(p); if (recenter) setMapKey((k) => k + 1) }
+
+  const useMyLocation = () => {
+    setGeoMsg('')
+    if (!navigator.geolocation) return setGeoMsg('Location is not available in this browser. Tap the map instead.')
+    navigator.geolocation.getCurrentPosition(
+      (g) => move([g.coords.latitude, g.coords.longitude], true),
+      () => setGeoMsg('Could not get your location. Tap the map to mark the spot.'),
+    )
+  }
 
   const submit = async (e) => {
     e.preventDefault()
     setBusy(true)
     setErr('')
     try {
+      const full = landmark.trim() ? `${text.trim()} (near ${landmark.trim()})` : text.trim()
       const r = await api.post('/reports', {
-        text, lat: pos[0], lng: pos[1], photo_url: photo || null, reporter_name: name || null,
+        text: full, lat: pos[0], lng: pos[1], photo_url: photo || null, reporter_name: name || null,
+        reporter_contact: contact || null, category_hint: picked?.hint || null,
       })
       setResult(r)
       setText('')
@@ -83,30 +118,61 @@ export default function Report({ onSubmitted }) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
-      <h2 className="text-3xl font-extrabold">Report a problem</h2>
-      <form onSubmit={submit} className="space-y-3">
-        <textarea
-          className="h-28 w-full rounded-lg border p-3 text-lg"
-          placeholder="Describe the problem (e.g. Huge pothole on Rosewood Lane near the bakery)"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-        <div className="flex flex-wrap items-center gap-3">
-          <button type="button" className="rounded bg-slate-700 px-3 py-2 text-white" onClick={() => { setPos(DEMO_SCENARIO_ORIGIN); setMapKey((k) => k + 1) }}>Use demo location</button>
-          <span className="text-sm text-slate-600">Pin: {pos[0].toFixed(5)}, {pos[1].toFixed(5)} (drag the pin or click the map)</span>
+    <div>
+      <PageHeader eyebrow="Report a problem" title="What needs fixing?" sub="Takes about a minute. Similar reports nearby are combined, so every report adds weight." />
+      <form onSubmit={submit} className="space-y-5">
+        <Step n={1} title="What kind of problem is it?" sub="Pick the closest match. We'll route it for you.">
+          <div className="grid gap-3 sm:grid-cols-2">
+            {REPORT_CATEGORIES.map((c) => (
+              <button
+                type="button" key={c.key} onClick={() => setCat(c.key)}
+                className={`flex items-center gap-3 rounded-xl border p-3 text-left ${cat === c.key ? 'border-primary bg-accent' : 'border-border bg-card hover:bg-muted'}`}
+              >
+                <IconTile name={c.icon} className="h-10 w-10" />
+                <span><span className="block text-sm font-semibold">{c.title}</span><span className="block text-xs text-muted-foreground">{c.sub}</span></span>
+              </button>
+            ))}
+          </div>
+        </Step>
+
+        <Step n={2} title="Where is it?" sub="A street name, nearby landmark, or your current location.">
+          <label className="text-sm font-medium">Location</label>
+          <div className="mt-1 flex flex-wrap gap-2">
+            <input className={`${input} min-w-[220px] flex-1`} placeholder="e.g. Neem Lane, opposite the bakery" value={landmark} onChange={(e) => setLandmark(e.target.value)} />
+            <Button type="button" variant="soft" onClick={useMyLocation}><Icon name="locate" className="h-4 w-4" /> Use my location</Button>
+            <Button type="button" variant="soft" onClick={() => move(DEMO_SCENARIO_ORIGIN, true)}><Icon name="pin" className="h-4 w-4" /> Use demo location</Button>
+          </div>
+          {geoMsg && <p className="mt-2 text-sm text-destructive">{geoMsg}</p>}
+          <p className="mb-2 mt-3 text-sm text-muted-foreground">Optional: tap the map or drag the pin to mark the spot. ({pos[0].toFixed(5)}, {pos[1].toFixed(5)})</p>
+          <PinMap key={mapKey} pos={pos} setPos={setPos} />
+        </Step>
+
+        <Step n={3} title="Add a photo (optional)" sub="A clear photo helps the team find and fix it faster.">
+          <div className="flex items-center gap-3 rounded-xl border border-dashed border-border bg-background p-3">
+            <Icon name="camera" className="h-5 w-5 text-muted-foreground" />
+            <input className="flex-1 bg-transparent text-sm outline-none" placeholder="Paste a photo link (https://...)" value={photo} onChange={(e) => setPhoto(e.target.value)} />
+          </div>
+        </Step>
+
+        <Step n={4} title="Describe the problem" sub="What's wrong, how long it's been there, and if it's dangerous.">
+          <label className="text-sm font-medium">Description</label>
+          <textarea
+            className={`${input} mt-1 h-28`} value={text} onChange={(e) => setText(e.target.value)}
+            placeholder={picked?.example || 'Huge pothole on Rosewood Lane near the bakery'}
+          />
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div><label className="text-sm font-medium">Your name (optional)</label><input className={`${input} mt-1`} value={name} onChange={(e) => setName(e.target.value)} /></div>
+            <div><label className="text-sm font-medium">Phone or email (optional)</label><input className={`${input} mt-1`} value={contact} onChange={(e) => setContact(e.target.value)} /></div>
+          </div>
+        </Step>
+
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">In danger right now? <b className="text-destructive">Call 112</b> for emergency services.</p>
+          <Button disabled={busy || text.trim().length < 3}>{busy ? 'Submitting…' : 'Submit report'}</Button>
         </div>
-        <PinMap key={mapKey} pos={pos} setPos={setPos} />
-        <div className="grid gap-3 md:grid-cols-2">
-          <input className="rounded border p-2" placeholder="Your name (optional)" value={name} onChange={(e) => setName(e.target.value)} />
-          <input className="rounded border p-2" placeholder="Photo URL (optional)" value={photo} onChange={(e) => setPhoto(e.target.value)} />
-        </div>
-        <button disabled={busy || text.trim().length < 3} className="rounded-lg bg-blue-700 px-6 py-3 text-xl font-bold text-white disabled:opacity-50">
-          Submit report
-        </button>
-        {err && <p className="font-semibold text-red-700">{err}</p>}
+        {err && <p className="font-semibold text-destructive">{err}</p>}
       </form>
-      {result && <Decision result={result} onTrack={() => onSubmitted(result.incident.id, result.report.id)} />}
+      {result && <div className="mt-6 pb-6"><Decision result={result} onFollow={onFollow} /></div>}
     </div>
   )
 }

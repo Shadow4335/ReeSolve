@@ -16,12 +16,14 @@ def submit_report(
     photo_url: str | None = None,
     reporter_name: str | None = None,
     reporter_contact: str | None = None,
+    category_hint: str | None = None,
 ) -> dict[str, Any]:
     """Create a Report, then merge it into a duplicate incident or open a new one with a task; link related clusters.
 
     Logs REPORT_RECEIVED, then DUPLICATE_MERGED (+PRIORITY_RAISED, +CONTRADICTION_DETECTED/TASK_REOPENED after closure) or INCIDENT_CREATED + TASK_CREATED, then RELATED_LINKED (+TASK_BLOCKED).
     """
     s = intake.structure_report(text)
+    s["category"] = intake.apply_category_hint(s["category"], category_hint)
     report = Report(
         text=text, summary=s["summary"], category=s["category"], severity=s["severity"],
         lat=lat, lng=lng, photo_url=photo_url,
