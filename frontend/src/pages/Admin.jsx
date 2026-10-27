@@ -73,7 +73,10 @@ function Feed() {
     let alive = true
     const poll = async () => {
       try {
-        const fresh = await api.get(lastId.current ? `/events?since_id=${lastId.current}&limit=200` : '/events?limit=40')
+        // limit returns the FIRST n events by id, so the initial load fetches all and keeps the newest 40
+        const first = !lastId.current
+        let fresh = await api.get(`/events?since_id=${lastId.current}&limit=1000`)
+        if (first) fresh = fresh.slice(-40)
         if (!alive || !fresh.length) return
         lastId.current = fresh[fresh.length - 1].id
         setEvents((old) => [...fresh.reverse(), ...old].slice(0, 150))
