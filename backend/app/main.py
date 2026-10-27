@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 
 from app import config
 from app.api import reports as reports_api
+from app.api import tasks as tasks_api
 from app.db import init_db
 from app.services.errors import InvalidTransition, NotFound
 
@@ -37,6 +38,7 @@ def _conflict(_req: Request, exc: InvalidTransition) -> JSONResponse:
 
 
 app.include_router(reports_api.router, prefix="/api")
+app.include_router(tasks_api.router, prefix="/api")
 
 
 @app.get("/api/health")

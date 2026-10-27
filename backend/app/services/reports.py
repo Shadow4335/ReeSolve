@@ -17,9 +17,9 @@ def submit_report(
     reporter_name: str | None = None,
     reporter_contact: str | None = None,
 ) -> dict[str, Any]:
-    """Create a Report, then merge it into a duplicate incident or open a new one; link related clusters.
+    """Create a Report, then merge it into a duplicate incident or open a new one with a task; link related clusters.
 
-    Logs REPORT_RECEIVED, then DUPLICATE_MERGED (+PRIORITY_RAISED) or INCIDENT_CREATED, then RELATED_LINKED.
+    Logs REPORT_RECEIVED, then DUPLICATE_MERGED (+PRIORITY_RAISED) or INCIDENT_CREATED + TASK_CREATED, then RELATED_LINKED (+TASK_BLOCKED).
     """
     s = intake.structure_report(text)
     report = Report(
@@ -66,6 +66,7 @@ def submit_report(
             f"New incident #{incident.id} ({incident.category}, priority {incident.priority}) from report #{report.id}",
             incident_id=incident.id, payload={"report_id": report.id},
         )
+        routing.create_primary_task(db, incident)
     report.dedup_explanation = res["explanation"]
 
     for rel in res["related"]:
@@ -73,6 +74,12 @@ def submit_report(
             db, incident, rel["incident"], rel["upstream"], rel["downstream"],
             rel["explanation"]["blocks_downstream"], rel["explanation"],
         )
+        if rel["explanation"]["blocks_downstream"]:
+            up_inc, down_inc = (incident, rel["incident"]) if incident.category == rel["upstream"] \
+                else (rel["incident"], incident)
+            up_t, down_t = routing.primary_task(up_inc), routing.primary_task(down_inc)
+            if up_t and down_t:
+                routing.apply_dependency(db, up_t, down_t, f"related incidents ({rel['explanation']['rule']})")
     return {
         "report": report,
         "incident": incident,

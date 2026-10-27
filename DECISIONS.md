@@ -16,3 +16,5 @@
 - M3: dedup candidates include all statuses within DEDUP_WINDOW_DAYS (needed for post-closure contradiction in M6). `dedup.resolve_report` is read-only; `reports.submit_report` applies merges, `clusters.link_related` applies cluster links.
 - M3: `blocks_downstream` is recorded in the RELATED_LINKED event/explanation; the actual BLOCKED task + dependency is applied in M4 (needs tasks). Test #4's blocking assertions land in M4.
 - M3: repeated cluster links append to the coordination note (new sentence per linked pair).
+- M4: one dependency per task (`depends_on_task_id`); a second blocking link on an already-dependent task is skipped. Blocking only applies to OPEN downstream tasks and non-CLOSED upstream tasks, with a cycle check.
+- M4: on priority rise, deadline = min(old, created_at + new SLA) only for tasks with no breaches/reopens; escalated or reopened tasks keep their re-armed deadline (only priority/base hours update).

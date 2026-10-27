@@ -34,7 +34,7 @@ def test_submit_report_creates_report_incident_events(db):
     assert r["report"].incident_id == r["incident"].id
     assert r["incident"].report_count == 1 and r["incident"].category == "road_damage"
     evs = db.query(Event).order_by(Event.id).all()
-    assert [e.type for e in evs] == ["REPORT_RECEIVED", "INCIDENT_CREATED"]
+    assert [e.type for e in evs] == ["REPORT_RECEIVED", "INCIDENT_CREATED", "TASK_CREATED"]
     assert all(e.reason and e.incident_id == r["incident"].id for e in evs)
 
 

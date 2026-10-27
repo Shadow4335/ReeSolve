@@ -35,7 +35,7 @@ def test_priority_recomputed_on_merge(db):
         submit_report(db, "Dangerous pothole on Maple Street", *at(5 * (i + 1)))
     assert first.report_count == 4 and first.priority == "HIGH"
     raised = events(db, "PRIORITY_RAISED")
-    assert len(raised) == 1 and raised[0].payload == {"from": "MEDIUM", "to": "HIGH"}
+    assert len(raised) == 1 and raised[0].payload["from"] == "MEDIUM" and raised[0].payload["to"] == "HIGH"
 
 
 def test_same_category_300m_away_not_merged(db):
