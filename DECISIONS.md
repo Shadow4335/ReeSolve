@@ -13,3 +13,6 @@
 - Push deferred: no remote configured yet; waiting for the origin URL.
 
 ## Known issues
+- M3: dedup candidates include all statuses within DEDUP_WINDOW_DAYS (needed for post-closure contradiction in M6). `dedup.resolve_report` is read-only; `reports.submit_report` applies merges, `clusters.link_related` applies cluster links.
+- M3: `blocks_downstream` is recorded in the RELATED_LINKED event/explanation; the actual BLOCKED task + dependency is applied in M4 (needs tasks). Test #4's blocking assertions land in M4.
+- M3: repeated cluster links append to the coordination note (new sentence per linked pair).
