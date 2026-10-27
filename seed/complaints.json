@@ -1,0 +1,573 @@
+{
+  "complaints": [
+    {
+      "id": "C-001",
+      "text": "There is a massive pothole right opposite Metro Pillar 112 on Arya Samaj Road. Multiple two-wheelers have almost slipped during evening traffic; please repair the road urgently.",
+      "ward": "Ward 14",
+      "lat": 28.6521,
+      "lng": 77.191,
+      "created_at": "2026-10-25T08:15:00Z",
+      "reported_by": "Rajesh Malhotra",
+      "category_hint": "Roads & Public Works"
+    },
+    {
+      "id": "C-002",
+      "text": "Bhai Arya Samaj Road pe metro pillar 112 ke samne bohot bada gaddha ho gaya hai. Kal raat ek scooty girte girte bachi, accident hone se pehle jaldi theek karao.",
+      "ward": "Ward 14",
+      "lat": 28.6523,
+      "lng": 77.1912,
+      "created_at": "2026-10-25T11:40:00Z",
+      "reported_by": "Aman Preet Singh",
+      "category_hint": "Roads & Public Works"
+    },
+    {
+      "id": "C-003",
+      "text": "Huge road crater near pillar 112 Karol Bagh market route. Tar is completely eroded and water is filling up inside the ditch, road condition is terrible.",
+      "ward": "Ward 14",
+      "lat": 28.652,
+      "lng": 77.1908,
+      "created_at": "2026-10-25T16:20:00Z",
+      "reported_by": "Sunita Aggarwal",
+      "category_hint": "Roads & Public Works"
+    },
+    {
+      "id": "C-004",
+      "text": "Main water pipeline burst near E-Block Market gate in Lajpat Nagar II. Clean drinking water is gushing onto the road since 6 AM and entering basement shops.",
+      "ward": "Ward 8",
+      "lat": 28.571,
+      "lng": 77.243,
+      "created_at": "2026-10-26T07:30:00Z",
+      "reported_by": "Priya Sharma",
+      "category_hint": "Water Supply"
+    },
+    {
+      "id": "C-005",
+      "text": "Lajpat Nagar 2 E-block market ke paas main pipe phat gaya hai, poori sadak par paani beh raha hai. Colony me paani ki supply bandh hai aur dukaano me paani ghus raha hai.",
+      "ward": "Ward 8",
+      "lat": 28.5712,
+      "lng": 77.2433,
+      "created_at": "2026-10-26T09:10:00Z",
+      "reported_by": "Deepak Chopra",
+      "category_hint": "Water Supply"
+    },
+    {
+      "id": "C-006",
+      "text": "Severe water pipe leak outside E-block central market lane. Tons of fresh paani getting wasted and causing massive waterlogging, urgent Jal Board intervention needed.",
+      "ward": "Ward 8",
+      "lat": 28.5709,
+      "lng": 77.2428,
+      "created_at": "2026-10-26T12:05:00Z",
+      "reported_by": "Kavita Narang",
+      "category_hint": "Water Supply"
+    },
+    {
+      "id": "C-007",
+      "text": "Unattended municipal garbage dump accumulating near the Sector 7 community center entrance. The waste has not been cleared for four days and is creating severe foul odor and health hazard.",
+      "ward": "Ward 22",
+      "lat": 28.7125,
+      "lng": 77.121,
+      "created_at": "2026-10-24T10:00:00Z",
+      "reported_by": "Virender Sehgal",
+      "category_hint": "Sanitation & Waste"
+    },
+    {
+      "id": "C-008",
+      "text": "Rohini sec 7 community park ke bahar kachra ka bada dher laga hua hai, 4 din se kachra gaadi nahi aayi. Bohot gandi badboo aa rahi hai aur awara kutton ka terror hai.",
+      "ward": "Ward 22",
+      "lat": 28.7127,
+      "lng": 77.1213,
+      "created_at": "2026-10-24T14:30:00Z",
+      "reported_by": "Meena Kumari",
+      "category_hint": "Sanitation & Waste"
+    },
+    {
+      "id": "C-009",
+      "text": "Huge pile of rotting solid waste dumped right in front of Sec 7 Rohini community hall. Stray cows and dogs scattering trash all over the street, MCD please clear immediately.",
+      "ward": "Ward 22",
+      "lat": 28.7123,
+      "lng": 77.1208,
+      "created_at": "2026-10-24T18:15:00Z",
+      "reported_by": "Gaurav Mittal",
+      "category_hint": "Sanitation & Waste"
+    },
+    {
+      "id": "C-010",
+      "text": "All four consecutive streetlights on Lane 3, Hauz Khas Enclave are non-operational. The entire stretch is completely dark at night, posing safety concerns for pedestrians.",
+      "ward": "Ward 17",
+      "lat": 28.5488,
+      "lng": 77.2045,
+      "created_at": "2026-10-26T18:45:00Z",
+      "reported_by": "Rohan Bakshi",
+      "category_hint": "Electricity"
+    },
+    {
+      "id": "C-011",
+      "text": "Hauz Khas Enclave Lane 3 ki saari street lights pichhle 3 din se band padi hain. Raat ko bilkul andhera rehta hai aur ladies ka nikalna unsafe ho gaya hai, bijli vibhag check kare.",
+      "ward": "Ward 17",
+      "lat": 28.549,
+      "lng": 77.2048,
+      "created_at": "2026-10-26T20:10:00Z",
+      "reported_by": "Ananya Deshmukh",
+      "category_hint": "Electricity"
+    },
+    {
+      "id": "C-012",
+      "text": "Broken streetlamps along lane 3 behind Hauz Khas market. Total blackout after 7 PM making it vulnerable for chain snatchers and accidents. Please fix ASAP.",
+      "ward": "Ward 17",
+      "lat": 28.5486,
+      "lng": 77.2042,
+      "created_at": "2026-10-26T21:30:00Z",
+      "reported_by": "Sameer Saxena",
+      "category_hint": "Electricity"
+    },
+    {
+      "id": "C-013",
+      "text": "Blocked stormwater drain overflowing with filthy black sewage onto Pocket 1 main road in Mayur Vihar. The toxic backflow is stagnating outside residential apartments and breeding mosquitoes.",
+      "ward": "Ward 31",
+      "lat": 28.608,
+      "lng": 77.297,
+      "created_at": "2026-10-25T13:00:00Z",
+      "reported_by": "Sanjay Goswami",
+      "category_hint": "Sanitation & Waste"
+    },
+    {
+      "id": "C-014",
+      "text": "Mayur Vihar Phase 1 Pocket 1 ke samne ka naala poori tarah chok ho gaya hai. Ganda sewer ka paani sadak pe beh raha hai aur gharon ke aage pool ho raha hai, bimari phailne ka darr hai.",
+      "ward": "Ward 31",
+      "lat": 28.6082,
+      "lng": 77.2973,
+      "created_at": "2026-10-25T15:20:00Z",
+      "reported_by": "Tarun Bhardwaj",
+      "category_hint": "Sanitation & Waste"
+    },
+    {
+      "id": "C-015",
+      "text": "Severe drain choke and sewage overflow on Pocket 1 Mayur Vihar road. Horrible stench and black water pooling everywhere, residents cannot even step out to the bus stand.",
+      "ward": "Ward 31",
+      "lat": 28.6078,
+      "lng": 77.2968,
+      "created_at": "2026-10-25T19:40:00Z",
+      "reported_by": "Pooja Hegde",
+      "category_hint": "Sanitation & Waste"
+    },
+    {
+      "id": "C-016",
+      "text": "Main underground drinking water pipe cracked open near Rajpur Road police post. Heavy water loss occurring non-stop for over a week and surrounding buildings have zero water pressure.",
+      "ward": "Ward 5",
+      "lat": 28.682,
+      "lng": 77.2215,
+      "created_at": "2026-10-18T08:30:00Z",
+      "reported_by": "Arjun Rampal",
+      "category_hint": "Water Supply"
+    },
+    {
+      "id": "C-017",
+      "text": "High-voltage distribution transformer sparking near St. Francis School crossing. Sparking continuously during load hours; live hazard for school children walking past.",
+      "ward": "Ward 19",
+      "lat": 28.6285,
+      "lng": 77.0815,
+      "created_at": "2026-10-19T10:15:00Z",
+      "reported_by": "Harpreet Kaur",
+      "category_hint": "Electricity"
+    },
+    {
+      "id": "C-018",
+      "text": "Commercial hazardous waste and discarded poultry remains dumped openly behind the municipal dispensary. No clearance done despite multiple follow-ups, foul smell is unbearable.",
+      "ward": "Ward 11",
+      "lat": 28.6735,
+      "lng": 77.288,
+      "created_at": "2026-10-20T14:45:00Z",
+      "reported_by": "Mohammad Irfan",
+      "category_hint": "Sanitation & Waste"
+    },
+    {
+      "id": "C-019",
+      "text": "Storm culvert collapsed on Press Enclave Marg creating a dangerous 4-foot chasm in the middle lane. Road has been barricaded with flimsy bamboo sticks for over a week with zero repair work started.",
+      "ward": "Ward 27",
+      "lat": 28.525,
+      "lng": 77.2155,
+      "created_at": "2026-10-19T16:20:00Z",
+      "reported_by": "Nitin Singhania",
+      "category_hint": "Roads & Public Works"
+    },
+    {
+      "id": "C-020",
+      "text": "Extremely deep road trench left open after cable laying work on Sector 10 main avenue. Two auto-rickshaws overturned yesterday, needs emergency asphalt patching.",
+      "ward": "Ward 9",
+      "lat": 28.581,
+      "lng": 77.057,
+      "created_at": "2026-10-21T09:00:00Z",
+      "reported_by": "Alok Tandon",
+      "category_hint": "Roads & Public Works",
+      "closure_report": {
+        "closed_at": "2026-10-23T15:30:00Z",
+        "claimed_by": "Junior Engineer Rajesh Kumar (PWD South-West)",
+        "note": "Trench backfilled with compacted aggregate and sealed with hot-mix asphalt. Road restored to level grade and reopened for traffic."
+      }
+    },
+    {
+      "id": "C-021",
+      "text": "PWD claimed complaint C-020 is resolved, but they only dumped loose dry soil without bitumen! The mud has sunk after rain creating an even deeper crater; photo attached showing car bumper damaged.",
+      "ward": "Ward 9",
+      "lat": 28.5812,
+      "lng": 77.0572,
+      "created_at": "2026-10-24T11:00:00Z",
+      "reported_by": "Priya Saxena",
+      "category_hint": "Roads & Public Works"
+    },
+    {
+      "id": "C-022",
+      "text": "Contaminated brown water with chemical stench coming from Delhi Jal Board supply lines in Block C. Residents falling ill with stomach infection after drinking boiled water.",
+      "ward": "Ward 15",
+      "lat": 28.5315,
+      "lng": 77.274,
+      "created_at": "2026-10-22T08:30:00Z",
+      "reported_by": "Mukesh Bansal",
+      "category_hint": "Water Supply",
+      "closure_report": {
+        "closed_at": "2026-10-24T17:45:00Z",
+        "claimed_by": "Assistant Engineer M. P. Sharma (Delhi Jal Board Okhla Zone)",
+        "note": "Flushed the supply line, isolated cross-connection defect at valve pit 4, and chlorinated storage tanks. Residual chlorine test confirmed potable grade."
+      }
+    },
+    {
+      "id": "C-023",
+      "text": "DJB marked C-022 resolved, but paani abhi bhi bilkul kaala aur badboodar aa raha hai! Water test sample photo uploaded showing high turbidity and chemical residue; nobody even came to check our lane.",
+      "ward": "Ward 15",
+      "lat": 28.5316,
+      "lng": 77.2743,
+      "created_at": "2026-10-25T10:15:00Z",
+      "reported_by": "Vikram Sethi",
+      "category_hint": "Water Supply"
+    },
+    {
+      "id": "C-024",
+      "text": "Uninsulated 440V underground cables dangling exposed near bus stop opposite Regal Cinema on Outer Circle. Pedestrians and shoppers at grave risk of high voltage shock.",
+      "ward": "Ward 3",
+      "lat": 28.633,
+      "lng": 77.218,
+      "created_at": "2026-10-22T14:00:00Z",
+      "reported_by": "Karan Johar",
+      "category_hint": "Electricity",
+      "closure_report": {
+        "closed_at": "2026-10-23T12:00:00Z",
+        "claimed_by": "Line Inspector Arvind Tyagi (BSES City Division)",
+        "note": "High-voltage cable terminations fully re-insulated with heat-shrink sleeves and enclosed inside locked weather-proof junction cabinet."
+      }
+    },
+    {
+      "id": "C-025",
+      "text": "False closure filed for C-024! Inspector just threw a soggy cardboard carton over live 440V wires near Regal bus shelter. Wires are totally naked in the rain; photo attached showing sparks flying.",
+      "ward": "Ward 3",
+      "lat": 28.6332,
+      "lng": 77.2182,
+      "created_at": "2026-10-24T09:30:00Z",
+      "reported_by": "Sunita Deshmukh",
+      "category_hint": "Electricity"
+    },
+    {
+      "id": "C-026",
+      "text": "Overgrown wild shrubs and tree branches completely obstructing driver view at Nelson Mandela Marg blind curve. Frequent near-misses during peak evening traffic hours.",
+      "ward": "Ward 4",
+      "lat": 28.527,
+      "lng": 77.155,
+      "created_at": "2026-10-21T11:20:00Z",
+      "reported_by": "Aditya Roy",
+      "category_hint": "Public Safety"
+    },
+    {
+      "id": "C-027",
+      "text": "Vacant DDA plot in Block A has become a swamp of stagnant rainwater. Massive mosquito breeding taking place, three dengue cases already confirmed in our residential lane.",
+      "ward": "Ward 12",
+      "lat": 28.669,
+      "lng": 77.102,
+      "created_at": "2026-10-22T16:00:00Z",
+      "reported_by": "Geeta Kashyap",
+      "category_hint": "Health"
+    },
+    {
+      "id": "C-028",
+      "text": "Pedestrian footpath pavers completely shattered and dislodged outside Preet Vihar metro station gate 2. Senior citizens unable to walk safely; immediate civil work required.",
+      "ward": "Ward 23",
+      "lat": 28.641,
+      "lng": 77.295,
+      "created_at": "2026-10-23T08:45:00Z",
+      "reported_by": "Manish Tiwari",
+      "category_hint": "Roads & Public Works"
+    },
+    {
+      "id": "C-029",
+      "text": "Illegal dumping of construction demolition debris and plaster bags along N-Block park perimeter. Footpath blocked completely forcing pedestrians to walk into oncoming vehicular traffic.",
+      "ward": "Ward 36",
+      "lat": 28.5525,
+      "lng": 77.241,
+      "created_at": "2026-10-23T14:10:00Z",
+      "reported_by": "Radhika Singhal",
+      "category_hint": "Sanitation & Waste"
+    },
+    {
+      "id": "C-030",
+      "text": "Heavy iron manhole cover missing on inner sector service road near Madhuban Chowk. Pit is completely open without any cautionary barrier or reflector cone.",
+      "ward": "Ward 42",
+      "lat": 28.703,
+      "lng": 77.132,
+      "created_at": "2026-10-24T07:50:00Z",
+      "reported_by": "Bhupender Hooda",
+      "category_hint": "Public Safety"
+    },
+    {
+      "id": "C-031",
+      "text": "Unauthorized street food vendor disposing burnt rancid oil and biological kitchen waste into open stormwater channel on Nai Sarak. Severe rodent infestation and stench threatening public health.",
+      "ward": "Ward 2",
+      "lat": 28.655,
+      "lng": 77.231,
+      "created_at": "2026-10-24T12:30:00Z",
+      "reported_by": "Zameer Ahmed",
+      "category_hint": "Health"
+    },
+    {
+      "id": "C-032",
+      "text": "Water booster pump valve leaking heavily at Corner Market roundabout. Drinking water flooding into street while upper floor apartments face severe pressure drop.",
+      "ward": "Ward 29",
+      "lat": 28.5385,
+      "lng": 77.207,
+      "created_at": "2026-10-24T16:40:00Z",
+      "reported_by": "Shruti Mathur",
+      "category_hint": "Water Supply"
+    },
+    {
+      "id": "C-033",
+      "text": "High mast illumination tower at Central Club roundabout has been flickering violently for two nights. Creates hazardous strobe effect for night driving on Ring Road.",
+      "ward": "Ward 33",
+      "lat": 28.6655,
+      "lng": 77.1315,
+      "created_at": "2026-10-25T09:20:00Z",
+      "reported_by": "Kamal Nayan",
+      "category_hint": "Electricity"
+    },
+    {
+      "id": "C-034",
+      "text": "Secondary garbage dhalao near Metro Pillar 38 overflowing into main market corridor. Cattle feeding on plastic bags and scattering refuse across road.",
+      "ward": "Ward 25",
+      "lat": 28.6305,
+      "lng": 77.2775,
+      "created_at": "2026-10-25T11:55:00Z",
+      "reported_by": "Ashok Upadhyay",
+      "category_hint": "Sanitation & Waste"
+    },
+    {
+      "id": "C-035",
+      "text": "Heavy metal pedestrian guardrail damaged and rusted sharp jagged edges protruding onto sidewalk near South Ex Part 1 subway. School kids and commuters getting scratched.",
+      "ward": "Ward 18",
+      "lat": 28.5725,
+      "lng": 77.223,
+      "created_at": "2026-10-25T17:15:00Z",
+      "reported_by": "Nalini Krishnan",
+      "category_hint": "Public Safety"
+    },
+    {
+      "id": "C-036",
+      "text": "Newly constructed speed bump on main market road lacks white reflector paint or warning signboards. Vehicles getting airborne at night, causing frequent two-wheeler crashes.",
+      "ward": "Ward 7",
+      "lat": 28.6475,
+      "lng": 77.1225,
+      "created_at": "2026-10-26T08:00:00Z",
+      "reported_by": "Harish Bhatia",
+      "category_hint": "Roads & Public Works"
+    },
+    {
+      "id": "C-037",
+      "text": "Dead animal carcass lying uncollected on service road near Model Town 2 lake park since yesterday. Intolerable stench and health hazard for morning joggers and residents.",
+      "ward": "Ward 10",
+      "lat": 28.7015,
+      "lng": 77.193,
+      "created_at": "2026-10-26T10:35:00Z",
+      "reported_by": "Simran Anand",
+      "category_hint": "Health"
+    },
+    {
+      "id": "C-038",
+      "text": "Overhead electrical pole leaning at 30-degree angle after truck collision under Defence Colony flyover. Tangled tension cables holding the heavy pole from crashing onto cars.",
+      "ward": "Ward 16",
+      "lat": 28.575,
+      "lng": 77.2335,
+      "created_at": "2026-10-26T14:15:00Z",
+      "reported_by": "Devendra Swaroop",
+      "category_hint": "Electricity"
+    },
+    {
+      "id": "C-039",
+      "text": "Underground main sluice valve leaking profusely outside DDA Flats Pocket A gate. Fresh drinking water pooling into 20-meter puddle while residents suffer low tap flow.",
+      "ward": "Ward 21",
+      "lat": 28.543,
+      "lng": 77.258,
+      "created_at": "2026-10-27T08:10:00Z",
+      "reported_by": "Bhavna Chawla",
+      "category_hint": "Water Supply"
+    },
+    {
+      "id": "C-040",
+      "text": "Commercial building owner has unlawfully erected iron barricades blocking designated fire emergency egress lane in BG Block market. Fire tender access completely compromised.",
+      "ward": "Ward 28",
+      "lat": 28.718,
+      "lng": 77.1585,
+      "created_at": "2026-10-27T13:45:00Z",
+      "reported_by": "Rajiv Lochan",
+      "category_hint": "Public Safety"
+    }
+  ],
+  "duplicate_groups": [
+    [
+      "C-001",
+      "C-002",
+      "C-003"
+    ],
+    [
+      "C-004",
+      "C-005",
+      "C-006"
+    ],
+    [
+      "C-007",
+      "C-008",
+      "C-009"
+    ],
+    [
+      "C-010",
+      "C-011",
+      "C-012"
+    ],
+    [
+      "C-013",
+      "C-014",
+      "C-015"
+    ]
+  ],
+  "scenarios": [
+    {
+      "id": "C-001",
+      "scenario_type": "duplicate_detection",
+      "description": "Platform detects C-002 and C-003 as near-duplicates via geo-distance (<50m) and TF-IDF similarity, clustering them under master incident C-001 to prevent redundant PWD dispatch."
+    },
+    {
+      "id": "C-002",
+      "scenario_type": "duplicate_detection",
+      "description": "Platform intake matches casual Hinglish text and Karol Bagh location to existing complaint C-001, linking it as a duplicate report and boosting incident urgency score."
+    },
+    {
+      "id": "C-003",
+      "scenario_type": "duplicate_detection",
+      "description": "Platform dedup pipeline matches third pothole report near pillar 112 to C-001 cluster, attaching citizen Sunita Aggarwal to the existing case notification list."
+    },
+    {
+      "id": "C-004",
+      "scenario_type": "duplicate_detection",
+      "description": "Platform identifies main pipeline burst in Lajpat Nagar II as primary water incident and clusters incoming reports C-005 and C-006 under a single Delhi Jal Board work order."
+    },
+    {
+      "id": "C-005",
+      "scenario_type": "duplicate_detection",
+      "description": "Platform associates Hinglish water leak complaint with C-004 based on spatial proximity (<30m) and water supply keywords, avoiding duplicate technician dispatch."
+    },
+    {
+      "id": "C-006",
+      "scenario_type": "duplicate_detection",
+      "description": "Platform merges third report of E-block central market waterlogging into C-004 incident cluster and recalculates combined impact rating."
+    },
+    {
+      "id": "C-007",
+      "scenario_type": "duplicate_detection",
+      "description": "Platform establishes baseline sanitation incident for unattended Rohini Sector 7 garbage dump, linking duplicates C-008 and C-009."
+    },
+    {
+      "id": "C-008",
+      "scenario_type": "duplicate_detection",
+      "description": "Platform recognizes Hinglish garbage grievance at community park as duplicate of C-007, incrementing report count and community priority."
+    },
+    {
+      "id": "C-009",
+      "scenario_type": "duplicate_detection",
+      "description": "Platform correlates third waste accumulation complaint to C-007, consolidating citizen communications under one MCD sanitation route ticket."
+    },
+    {
+      "id": "C-010",
+      "scenario_type": "duplicate_detection",
+      "description": "Platform groups blackout reports C-011 and C-012 under Hauz Khas streetlight outage C-010, assigning single repair task to Electrical maintenance."
+    },
+    {
+      "id": "C-011",
+      "scenario_type": "duplicate_detection",
+      "description": "Platform ingests Hinglish dark street complaint, detects coordinate overlap with C-010, and merges it into existing electrical ticket."
+    },
+    {
+      "id": "C-012",
+      "scenario_type": "duplicate_detection",
+      "description": "Platform links third lane blackout complaint to C-010 cluster, flagging increased public safety risk due to multiple consecutive broken lamps."
+    },
+    {
+      "id": "C-013",
+      "scenario_type": "duplicate_detection",
+      "description": "Platform logs primary sewer overflow incident on Mayur Vihar Pocket 1 road, clustering duplicates C-014 and C-015."
+    },
+    {
+      "id": "C-014",
+      "scenario_type": "duplicate_detection",
+      "description": "Platform maps Hinglish blocked drain complaint to C-013 based on 25m distance and sewage keywords, consolidating citizen feedback."
+    },
+    {
+      "id": "C-015",
+      "scenario_type": "duplicate_detection",
+      "description": "Platform bundles third drain choke complaint into C-013 incident and auto-routes unified drainage remediation task."
+    },
+    {
+      "id": "C-016",
+      "scenario_type": "sla_breach",
+      "description": "Platform SLA watchdog detects 24h water leak deadline expired (unresolved for 9 days), marks SLA state as BREACHED, and auto-escalates task from Field Team to Department Head."
+    },
+    {
+      "id": "C-017",
+      "scenario_type": "sla_breach",
+      "description": "Platform SLA watchdog identifies high-voltage transformer sparking hazard past 24h emergency SLA, auto-escalates to Department Head, and raises alert priority to Critical."
+    },
+    {
+      "id": "C-018",
+      "scenario_type": "sla_breach",
+      "description": "Platform SLA watchdog flags bio-hazardous waste accumulation overdue past 48h SLA, changes status to BREACHED, and triggers executive supervisor notifications."
+    },
+    {
+      "id": "C-019",
+      "scenario_type": "sla_breach",
+      "description": "Platform SLA watchdog flags collapsed storm culvert past 144h SLA window, escalating case directly to Municipal Commissioner for immediate emergency contractor intervention."
+    },
+    {
+      "id": "C-020",
+      "scenario_type": "contradicted_closure",
+      "description": "Platform verification gate compares PWD closure report against citizen rebuttal C-021, detects physical contradiction, rejects closure, reopens task to IN_PROGRESS, and increments reopen_count."
+    },
+    {
+      "id": "C-021",
+      "scenario_type": "contradicted_closure",
+      "description": "Platform ingests citizen complaint C-021 with photo evidence showing unpaved pit, triggering automated reopening of falsely closed complaint C-020 and flagging supervisor for false resolution audit."
+    },
+    {
+      "id": "C-022",
+      "scenario_type": "contradicted_closure",
+      "description": "Platform verification gate evaluates DJB potable water claim against follow-up complaint C-023, reverses resolved status, elevates priority to High, and re-dispatches inspection crew."
+    },
+    {
+      "id": "C-023",
+      "scenario_type": "contradicted_closure",
+      "description": "Platform processes citizen water sample evidence refuting C-022 closure, reopens the underlying task, and forces immediate Level 2 Department Supervisor oversight."
+    },
+    {
+      "id": "C-024",
+      "scenario_type": "contradicted_closure",
+      "description": "Platform verification gate identifies citizen report C-025 disproving BSES electrical insulation claim, immediately reopens critical task, and dispatches emergency safety crew."
+    },
+    {
+      "id": "C-025",
+      "scenario_type": "contradicted_closure",
+      "description": "Platform flags citizen photo of live 440V wires under cardboard as contradiction of C-024 closure, triggering immediate incident reopening and disciplinary audit for false resolution."
+    }
+  ]
+}
