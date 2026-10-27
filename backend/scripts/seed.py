@@ -55,6 +55,9 @@ def seed(db) -> None:
     from app.services.reports import submit_report
     from app.geo import haversine_m
 
+    if db.query(Incident).count():  # re-run guard (main dev): a second seed on live data hit InvalidTransition
+        return
+
     # ------------------------------------------------------------------
     # Safety: verify none of our seed coords are too close to DEMO_SCENARIO_ORIGIN
     # ------------------------------------------------------------------
