@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { api } from './api'
+import { CLOCK_EVENT, DemoTimeControl } from './components/FastForward'
 import Layout from './components/layout/Layout'
 import Overview from './pages/Overview'
 import Report from './pages/Report'
@@ -30,7 +31,8 @@ function SimClock() {
     const tick = () => api.get('/admin/clock').then((c) => setNow(c.now)).catch(() => setNow(null))
     tick()
     const id = setInterval(tick, 3000)
-    return () => clearInterval(id)
+    window.addEventListener(CLOCK_EVENT, tick) // refresh right after a fast-forward
+    return () => { clearInterval(id); window.removeEventListener(CLOCK_EVENT, tick) }
   }, [])
   return (
     <div className="rounded border border-border bg-navy-50 px-2.5 py-1.5 text-xs">
@@ -94,9 +96,9 @@ function Frame({ path }) {
   const nav = MENUS[role].map(([key, labelKey]) => ({ key, label: t(labelKey), active: page === key, onClick: () => go(key) }))
   const controls = (
     <>
-      <label className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+      <label className="flex w-full items-center gap-2 text-xs font-semibold text-muted-foreground sm:w-auto">
         {t('role.viewingAs')}
-        <select id="role-switch" value={roleKeyOf(session)} onChange={(e) => changeRole(e.target.value)} className="rounded border border-border bg-white px-2 py-1.5 text-sm font-medium text-ink">
+        <select id="role-switch" value={roleKeyOf(session)} onChange={(e) => changeRole(e.target.value)} className="w-0 min-w-0 flex-1 rounded border border-border bg-white px-2 py-1.5 text-sm font-medium text-ink sm:w-auto sm:flex-none">
           <option value="citizen">{t('role.resident')}</option>
           {DEPARTMENTS.map(([c, n]) => <option key={c} value={`dept:${c}`}>{t('role.department', { name: n })}</option>)}
           <option value="admin">{t('role.admin')}</option>
@@ -104,6 +106,7 @@ function Frame({ path }) {
       </label>
       <UserBlock session={session} requireLogin={requireLogin} onSignOut={softSignOut} />
       <SimClock />
+      {session.demo && page !== 'admin' && <DemoTimeControl />}
     </>
   )
 

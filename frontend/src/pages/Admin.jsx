@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, CircleMarker, Polyline, Popup } from 'react-le
 import { api } from '../api'
 import { usePolling } from '../hooks'
 import EventBadge, { fmtTs } from '../components/EventBadge'
+import { CustomHours, notifyClock } from '../components/FastForward'
 import { Button, Card, PageHeader, StatusKey } from '../components/ui'
 import { DEMO_CENTER } from '../constants'
 import { useT } from '../i18n'
@@ -138,7 +139,7 @@ export default function Admin() {
       reloadStats()
     }
   }
-  const advance = (h) => act(`+${h}h`, () => api.post('/admin/clock/advance', { hours: h }))
+  const advance = (h) => act(`+${h}h`, async () => { await api.post('/admin/clock/advance', { hours: h }); notifyClock() })
   const totals = stats?.totals
 
   return (
@@ -149,7 +150,8 @@ export default function Admin() {
         {[1, 24, 72].map((h) => (
           <Button key={h} variant="dark" disabled={busy} onClick={() => advance(h)}>+{h}h</Button>
         ))}
-        <Button variant="soft" disabled={busy} onClick={() => act('Clock reset', () => api.post('/admin/clock/reset'))}>Reset</Button>
+        <CustomHours onAdvance={advance} disabled={busy} id="admin-custom-hours" />
+        <Button variant="soft" disabled={busy} onClick={() => act('Clock reset', async () => { await api.post('/admin/clock/reset'); notifyClock() })}>Reset</Button>
         <Button disabled={busy} onClick={() => act('Watchdog', () => api.post('/admin/tick'))}>Run watchdog</Button>
         <span className="mx-2 h-7 border-l border-border" />
         <Button variant="danger" disabled={busy} onClick={() => act('Reset demo', async () => { await api.post('/admin/reset'); window.__resetFeed?.() })}>Reset demo</Button>

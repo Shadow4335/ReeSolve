@@ -71,7 +71,7 @@ export default function Login() {
     setTimeout(() => { if (alive.current) { setShown(key); setFading(false) } }, 150)
   }
 
-  async function run(role, v) {
+  async function run(role, v, isDemo = false) {
     if (status !== 'idle') return
     const errs = validate(role, v, t)
     if (Object.keys(errs).length) { setErrors(errs); shake(); focusId(Object.keys(errs)[0]); return }
@@ -88,11 +88,11 @@ export default function Login() {
     setLeaving(true)
     await sleep(350)
     if (!alive.current) return
-    signIn({ role, name: v.name.trim(), department: role === 'department' ? v.department : null })
+    signIn({ role, name: v.name.trim(), department: role === 'department' ? v.department : null, demo: isDemo })
     navigate(targetFor(role), { replace: true })
   }
 
-  const demo = (d) => { changeTab(d.role); const next = { ...values, ...d.values }; setValues(next); run(d.role, next) }
+  const demo = (d) => { changeTab(d.role); const next = { ...values, ...d.values }; setValues(next); run(d.role, next, true) }
   const onSubmit = (e) => { e.preventDefault(); run(tab, values) }
 
   const roles = ROLE_KEYS.map(([key, labelKey]) => ({ key, label: t(labelKey) }))

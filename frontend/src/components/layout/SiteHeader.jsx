@@ -8,7 +8,7 @@ export default function SiteHeader({ nav = [], controls = null }) {
     <header className="border-b border-border bg-white">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-3 sm:px-6">
         <Logo />
-        {controls && <div className="flex flex-wrap items-center gap-3">{controls}</div>}
+        {controls && <div className="flex w-full min-w-0 flex-wrap items-center gap-3 sm:w-auto">{controls}</div>}
       </div>
       {nav.length > 0 && (
         <nav aria-label={t('nav.main')} className="border-t border-border">

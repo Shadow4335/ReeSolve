@@ -1,5 +1,6 @@
 // DEMO SIGN-IN ONLY (frontend). No API calls, no passwords sent anywhere, no real security: it just picks the
 // role + department the app already supports (Resident / Department: X / Admin) and remembers it in localStorage.
+// `demo: true` marks sessions started from a "Try as..." chip; only those get the demo time-travel control.
 // The backend stays auth-free. Set VITE_REQUIRE_LOGIN=false to bypass the guard entirely.
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
 import { DEPARTMENTS } from '../lib/departments'
@@ -46,8 +47,9 @@ export function AuthProvider({ children }) {
   const setRoleKey = useCallback((key) => {
     setSession((cur) => {
       const name = cur?.name || GUEST_SESSION.name
-      const next = key.startsWith('dept:') ? { role: 'department', name, department: key.slice(5) }
-        : { role: key === 'admin' ? 'admin' : 'citizen', name, department: null }
+      const demo = !!cur?.demo // the demo flag survives role-switching; main accounts never get it
+      const next = key.startsWith('dept:') ? { role: 'department', name, department: key.slice(5), demo }
+        : { role: key === 'admin' ? 'admin' : 'citizen', name, department: null, demo }
       if (REQUIRE_LOGIN) persist(next)
       return next
     })

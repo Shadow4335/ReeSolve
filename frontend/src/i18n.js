@@ -6,6 +6,7 @@
 //   - 'chip.askFixed', 'btn.noFixed' (colloquial phrasing for "Was this fixed?" / "No, still a problem")
 //   - 'btn.follow' ("फ़ॉलो करें" is borrowed from English; consider "अनुसरण करें" / "इस पर नज़र रखें")
 //   - 'footer.disclaimer' (legal-style sentence), 'footer.aboutText'
+//   - 'demo.*' (डेमो समय / आगे बढ़ाएँ: check these read naturally for "fast-forward")
 //   - 'login.sub', 'login.codeError', 'overview.sub' (friendly tone for formal register)
 //   - 'role.staff' -> "{name} कर्मचारी" (department names themselves stay in English: they are data)
 import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState } from 'react'
@@ -55,6 +56,8 @@ export const en = {
   'login.errDept': 'Pick your department so we can show your queue.', 'login.errCode': 'Enter the demo access code (it is shown just below the field).',
   'login.codeError': "That code doesn't match. For this demo, use {code}.", 'login.codeHint': 'Demo code: {code}',
   'panel.month': 'reports this month', 'panel.fixed': 'fixed and confirmed by residents', 'panel.promise': 'Fixed means confirmed fixed',
+  'demo.title': 'Demo time', 'demo.hours': 'Hours', 'demo.go': 'Fast-forward', 'demo.reset': 'Reset time',
+  'demo.invalid': 'Enter hours above 0, up to {max}.', 'demo.done': 'Moved forward {h}h', 'demo.resetDone': 'Clock reset to real time',
 }
 
 export const hi = {
@@ -99,6 +102,8 @@ export const hi = {
   'login.errDept': 'कृपया अपना विभाग चुनें ताकि हम आपकी कार्य सूची दिखा सकें।', 'login.errCode': 'डेमो एक्सेस कोड दर्ज करें (वह इस फ़ील्ड के ठीक नीचे दिखाया गया है)।',
   'login.codeError': 'यह कोड मेल नहीं खाता। इस डेमो के लिए {code} का उपयोग करें।', 'login.codeHint': 'डेमो कोड: {code}',
   'panel.month': 'इस महीने की शिकायतें', 'panel.fixed': 'ठीक हुईं और निवासियों द्वारा पुष्ट', 'panel.promise': 'ठीक हुआ यानी पुष्टि के बाद ही ठीक',
+  'demo.title': 'डेमो समय', 'demo.hours': 'घंटे', 'demo.go': 'आगे बढ़ाएँ', 'demo.reset': 'समय रीसेट',
+  'demo.invalid': '0 से अधिक घंटे दर्ज करें, अधिकतम {max}।', 'demo.done': '{h} घंटे आगे बढ़ाया', 'demo.resetDone': 'घड़ी वास्तविक समय पर लौटी',
 }
 
 const I18nContext = createContext({ lang: 'en', setLang: () => {}, t: (k) => en[k] ?? k })
