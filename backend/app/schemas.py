@@ -105,6 +105,28 @@ class TaskOut(ORM):
         return cls(**{**base, **sla.task_view(task)})
 
 
+class ClosureOut(ORM):
+    id: int
+    task_id: int
+    note: str
+    photo_url: str | None
+    lat: float | None
+    lng: float | None
+    submitted_at: datetime
+    checks: dict[str, Any]
+    outcome: str
+
+
+class VerificationOut(ORM):
+    id: int
+    task_id: int
+    closure_id: int
+    report_id: int
+    status: str
+    comment: str | None
+    responded_at: datetime | None
+
+
 class EventOut(ORM):
     id: int
     ts: datetime
@@ -143,3 +165,13 @@ class ReportResultOut(BaseModel):
 class ClockOut(BaseModel):
     now: datetime
     offset_seconds: float
+
+
+class ClosureResultOut(BaseModel):
+    closure: ClosureOut
+    task: TaskOut
+
+
+class VerifyResultOut(BaseModel):
+    verification: VerificationOut
+    task: TaskOut

@@ -5,7 +5,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app import clock, config
-from app.models import TASK_BLOCKED, TASK_IN_PROGRESS, TASK_OPEN, Task
+from app.models import TASK_BLOCKED, TASK_IN_PROGRESS, TASK_OPEN, TASK_PENDING_VERIFICATION, Task
 from app.services import escalation
 from app.services.events import log_event
 
@@ -79,7 +79,8 @@ def unblock_dependents(db: Session, task: Task) -> list[Task]:
 
 
 def run_watchdog(db: Session) -> None:
-    """Scan active tasks: 80% elapsed -> SLA_WARNING (once per window); past deadline -> SLA_BREACHED + escalate.
+    """Scan active tasks: 80% elapsed -> SLA_WARNING (once per window); past deadline -> SLA_BREACHED + escalate;
+    PENDING_VERIFICATION past its deadline -> verification timeout.
 
     BLOCKED tasks are paused and never breach. One breach per task per run. Caller commits.
     """
@@ -106,3 +107,8 @@ def run_watchdog(db: Session) -> None:
                 payload={"late_hours": round(late_h, 2), "breach_count": task.breach_count},
             )
             escalation.escalate(db, task, reason)
+
+    from app.services import verification  # lazy: verification imports this module
+
+    for task in db.query(Task).filter(Task.status == TASK_PENDING_VERIFICATION).all():
+        verification.evaluate_timeout(db, task)

@@ -21,3 +21,6 @@
 - M5: `run_watchdog` handles one breach per task per run and always logs SLA_WARNING before SLA_BREACHED if the warning point was skipped by a big clock jump. Verification-timeout hook is added with M6.
 - M5: `unblock_dependents(db, task)` lives in `sla.py`; M6 `finalize_close` calls it. `POST /admin/clock/reset` also logs a CLOCK_ADVANCED event (hours 0) for the audit trail.
 - M5: scheduler (BackgroundScheduler, 5s) starts in the app lifespan only, so tests never run it.
+- M6: auto-rejected closures (no photo / wrong place) call `reopen_task(source="closure_rejected")`, which also accepts OPEN/IN_PROGRESS tasks and counts toward reopen_count (so two bad closures force escalation to Dept Head). Note-too-short is recorded in `checks` but does not reject (spec rejects only on photo/geo).
+- M6: verification requests go to the first 5 reports of the incident by id. A post-closure report only contradicts CLOSED tasks closed within POST_CLOSURE_WINDOW_DAYS, or any PENDING_VERIFICATION task.
+- M6: `POST /tasks/{id}/close` and `/verify-response` return `{closure|verification, task}` (TaskOut included so the UI needs no refetch).

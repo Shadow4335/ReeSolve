@@ -4,7 +4,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.models import Incident, Report
-from app.services import clusters, dedup, intake, routing
+from app.services import clusters, dedup, intake, routing, verification
 from app.services.events import log_event
 
 
@@ -19,7 +19,7 @@ def submit_report(
 ) -> dict[str, Any]:
     """Create a Report, then merge it into a duplicate incident or open a new one with a task; link related clusters.
 
-    Logs REPORT_RECEIVED, then DUPLICATE_MERGED (+PRIORITY_RAISED) or INCIDENT_CREATED + TASK_CREATED, then RELATED_LINKED (+TASK_BLOCKED).
+    Logs REPORT_RECEIVED, then DUPLICATE_MERGED (+PRIORITY_RAISED, +CONTRADICTION_DETECTED/TASK_REOPENED after closure) or INCIDENT_CREATED + TASK_CREATED, then RELATED_LINKED (+TASK_BLOCKED).
     """
     s = intake.structure_report(text)
     report = Report(
@@ -50,6 +50,7 @@ def submit_report(
             incident_id=incident.id, payload={**expl, "report_id": report.id},
         )
         routing.recompute_priority(db, incident)
+        verification.on_post_closure_report(db, incident, report)
     else:
         zone = routing.in_vulnerable_zone(db, lat, lng)
         incident = Incident(
