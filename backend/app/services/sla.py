@@ -1,8 +1,13 @@
-"""SLA engine. M1 provides the task view helper; the watchdog is added in M5."""
+"""SLA engine: task view helper, watchdog (warnings/breaches), pause/resume."""
+from datetime import timedelta
 from typing import Any
+
+from sqlalchemy.orm import Session
 
 from app import clock, config
 from app.models import TASK_BLOCKED, TASK_IN_PROGRESS, TASK_OPEN, Task
+from app.services import escalation
+from app.services.events import log_event
 
 
 def current_window_hours(task: Task) -> float:
@@ -50,3 +55,54 @@ def task_view(task: Task) -> dict[str, Any]:
         "incident_summary": task.incident.summary,
         "incident_category": task.incident.category,
     }
+
+
+def unblock_dependents(db: Session, task: Task) -> list[Task]:
+    """Upstream task closed: every BLOCKED dependent -> OPEN, deadline extended by the paused time.
+
+    Logs TASK_UNBLOCKED per task.
+    """
+    freed = []
+    for dep in db.query(Task).filter_by(depends_on_task_id=task.id, status=TASK_BLOCKED).all():
+        paused = clock.now() - (dep.paused_at or clock.now())
+        dep.sla_deadline = dep.sla_deadline + paused
+        dep.paused_at = None
+        dep.status = TASK_OPEN
+        log_event(
+            db, "TASK_UNBLOCKED",
+            f"Task #{dep.id} ({dep.department.name}) unblocked: task #{task.id} ({task.department.name}) is closed. "
+            f"SLA clock resumed after {paused.total_seconds() / 3600:.1f}h pause.",
+            incident_id=dep.incident_id, task_id=dep.id, payload={"paused_seconds": paused.total_seconds()},
+        )
+        freed.append(dep)
+    return freed
+
+
+def run_watchdog(db: Session) -> None:
+    """Scan active tasks: 80% elapsed -> SLA_WARNING (once per window); past deadline -> SLA_BREACHED + escalate.
+
+    BLOCKED tasks are paused and never breach. One breach per task per run. Caller commits.
+    """
+    t = clock.now()
+    for task in db.query(Task).filter(Task.status.in_((TASK_OPEN, TASK_IN_PROGRESS))).all():
+        window = timedelta(hours=current_window_hours(task))
+        remaining = task.sla_deadline - t
+        if not task.warned and remaining <= (1 - config.SLA_WARNING_FRACTION) * window:
+            task.warned = True
+            log_event(
+                db, "SLA_WARNING",
+                f"Task #{task.id} ({task.department.name}) has used {config.SLA_WARNING_FRACTION:.0%} of its "
+                f"{window.total_seconds() / 3600:g}h SLA window; deadline {task.sla_deadline:%Y-%m-%d %H:%M}",
+                incident_id=task.incident_id, task_id=task.id,
+                payload={"deadline": task.sla_deadline.isoformat()},
+            )
+        if remaining.total_seconds() < 0:
+            late_h = -remaining.total_seconds() / 3600
+            task.breach_count += 1
+            reason = f"SLA breached by {late_h:.1f} hours"
+            log_event(
+                db, "SLA_BREACHED", f"Task #{task.id} ({task.department.name}): {reason}",
+                incident_id=task.incident_id, task_id=task.id,
+                payload={"late_hours": round(late_h, 2), "breach_count": task.breach_count},
+            )
+            escalation.escalate(db, task, reason)

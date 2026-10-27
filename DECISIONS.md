@@ -18,3 +18,6 @@
 - M3: repeated cluster links append to the coordination note (new sentence per linked pair).
 - M4: one dependency per task (`depends_on_task_id`); a second blocking link on an already-dependent task is skipped. Blocking only applies to OPEN downstream tasks and non-CLOSED upstream tasks, with a cycle check.
 - M4: on priority rise, deadline = min(old, created_at + new SLA) only for tasks with no breaches/reopens; escalated or reopened tasks keep their re-armed deadline (only priority/base hours update).
+- M5: `run_watchdog` handles one breach per task per run and always logs SLA_WARNING before SLA_BREACHED if the warning point was skipped by a big clock jump. Verification-timeout hook is added with M6.
+- M5: `unblock_dependents(db, task)` lives in `sla.py`; M6 `finalize_close` calls it. `POST /admin/clock/reset` also logs a CLOCK_ADVANCED event (hours 0) for the audit trail.
+- M5: scheduler (BackgroundScheduler, 5s) starts in the app lifespan only, so tests never run it.
