@@ -120,3 +120,7 @@ Be honest about the MVP limits: SQLite, simulated citizen verification, no real 
 - **Blank map:** tiles need internet; the markers and feed still work.
 - **State looks odd:** Admin → **Reset demo** → **Load seed data**, then start from Step 1.
 - **Need to skip ahead:** `python scripts/demo_scenario.py --no-reset --pause 0` replays the storyline against the current data.
+
+---
+
+*Design credit: the resident screens (Overview, Report a problem, City projects, My requests) were modelled on the demo interface design shared by **Harshita Khandelwal** and **Sejal Kundnani** ([neighborly-city-pulse.lovable.app](https://neighborly-city-pulse.lovable.app)). Full credits are in the README.*

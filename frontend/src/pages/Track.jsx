@@ -44,8 +44,18 @@ function VerifyPanel({ task, reports, reportId, onDone }) {
 
 function RequestCard({ incidentId, reportId, onRemove }) {
   const t = useT()
-  const { data: inc, reload } = usePolling(() => api.get(`/incidents/${incidentId}`), 3000, [incidentId])
+  const { data: inc, error, reload } = usePolling(() => api.get(`/incidents/${incidentId}`), 3000, [incidentId])
   const { data: all } = usePolling(() => api.get('/tasks'), 6000)
+  if (!inc && error) {
+    // e.g. the demo database was reset and this incident no longer exists
+    return (
+      <Card className="p-6">
+        <p className="font-semibold">{requestId(incidentId)} is no longer available.</p>
+        <p className="mt-1 text-sm text-muted-foreground">It may have been removed when the demo data was reset.</p>
+        <button className="mt-3 text-sm font-semibold text-navy-700 underline" onClick={onRemove}>Stop following</button>
+      </Card>
+    )
+  }
   if (!inc) return <Card className="p-6 text-muted-foreground">Loading request…</Card>
   const task = inc.tasks[0]
   const chip = statusChip(task, inc)
