@@ -1,6 +1,7 @@
 from app import clock, config
 from app.geo import haversine_m
 from app.models import Event, Incident, Task
+from app.services import sla
 from app.services.reports import submit_report
 from scripts.seed import seed
 
@@ -37,3 +38,12 @@ def test_seed_idempotent_and_demo_origin_stays_clean(db):
     assert db.query(Incident).count() == n
     r = submit_report(db, "Big pothole on the road", *config.DEMO_SCENARIO_ORIGIN)
     assert r["decision"] == "new" and r["cluster"] is None
+
+
+def test_baseline_stays_quiet_during_early_demo_clock_jumps(db):
+    seed(db)
+    before = db.query(Event).count()
+    clock.advance(27)
+    sla.run_watchdog(db)
+    new = db.query(Event).filter(Event.id > before).all()
+    assert [e.type for e in new if e.type in ("SLA_BREACHED", "ESCALATED", "TASK_CLOSED")] == []

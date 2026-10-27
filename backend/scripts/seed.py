@@ -20,7 +20,7 @@ from app.services.reports import submit_report  # noqa: E402
 from app.services.routing import primary_task, start_task  # noqa: E402
 
 CLC, CLN = config.DEMO_CENTER
-HOURS_BACK = 120
+HOURS_BACK = 170
 STEP_HOURS = 4
 
 
@@ -80,6 +80,8 @@ def seed(db: Session) -> None:
         "Deep dangerous pothole near Aspen Road bus stop",
         "Pothole on Aspen Road, an accident waiting to happen",
     ]
+    # Timing rule: every running baseline task keeps >= ~28h of SLA left (except F, deliberately at the warning
+    # point), so the demo's early clock jumps do not trip unrelated tasks.
     timeline: list[tuple[float, Callable[[], None]]] = [
         # verified closures
         (-120, report("A", "Large pothole on the road outside Cedar Market, two-wheelers are slipping", -100, -250)),
@@ -91,22 +93,24 @@ def seed(db: Session) -> None:
         # closed with low confidence: nobody answers the verification request
         (-100, report("D", "Drain outside Willow Court is clogged with sludge", -350, 300)),
         (-95, start("D")), (-90, close("D")),
-        # breached and escalated by the watchdog
-        (-70, report("K", "Garbage dump has not been cleared at Linden Crossing for a week", -100, 0)),
+        # breached long ago and escalated by the watchdog (long road SLA keeps it quiet now)
+        (-151, report("K", "Large pothole at Linden Crossing, it has been there for weeks and nobody came", -100, 0)),
         # reopened once after a citizen said "not fixed"
-        (-60, report("G", "Garbage piled up and not collected for days on Pine Street", -600, 300)),
+        (-60, report("G", "Road surface collapsed into a deep crack on Pine Street", -600, 300)),
         (-55, start("G")), (-30, close("G")),
-        (-10, respond("G", False, "Still a pile of rubbish, nothing was collected")),
+        (-2, respond("G", False, "Still a crater, the patch washed away")),
+        # near its SLA warning point (deliberate: the "close to breach" example)
+        (-115.5, report("F", "Cracked road surface near Elm Street junction, vehicles are swerving", -600, 0)),
         # duplicates raising priority
-        (-50, report("H", pothole_n[0], -600, -300, "Resident 1")),
-        (-48, report("H", pothole_n[1], -600 + 0.0001 * 111_195 / 10, -300, "Resident 2")),
-        (-46, report("H", pothole_n[2], -600 + 0.0001 * 111_195 / 6, -300, "Resident 3")),
-        (-44, report("H", pothole_n[3], -600 + 0.0001 * 111_195 / 5, -300, "Resident 4")),
-        # near breach, in progress, cluster pair (road blocked behind leak), fresh report
-        (-20, report("F", "Leaking water pipe near Elm Street junction, low pressure at the tap", -600, 0)),
-        (-12, report("I", "Water pipe burst and leaking near Cypress Square", -850, -100)),
-        (-11.5, report("IR", "Large pothole and cracked road near Cypress Square", -790, -100)),
-        (-10.5, report("E", "Water pipe burst on Birch Road, leaking onto the footpath", -350, -300)),
+        (-20, report("H", pothole_n[0], -600, -300, "Resident 1")),
+        (-18, report("H", pothole_n[1], -600 + 1.1, -300, "Resident 2")),
+        (-16, report("H", pothole_n[2], -600 + 1.9, -300, "Resident 3")),
+        (-14, report("H", pothole_n[3], -600 + 2.2, -300, "Resident 4")),
+        # cluster pair: clogged drain upstream, road blocked behind it
+        (-0.5, report("I", "Drain near Cypress Square is clogged and overflowing", -850, -100)),
+        (-0.4, report("IR", "Large pothole and cracked road near Cypress Square", -790, -100)),
+        # in progress, and a fresh report
+        (-10, report("E", "Street light on Birch Road is out, the whole stretch is dark", -350, -300)),
         (-8, start("E")),
         (-2, report("J", "Street light not working near Hazel Park, very dark at night", -850, 250)),
     ]
