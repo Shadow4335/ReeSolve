@@ -23,3 +23,15 @@ def db():
         seed_reference_data(session)
         session.commit()
         yield session
+
+
+@pytest.fixture()
+def client(db):
+    from fastapi.testclient import TestClient
+
+    from app.db import get_db
+    from app.main import app
+
+    app.dependency_overrides[get_db] = lambda: db
+    yield TestClient(app)
+    app.dependency_overrides.clear()

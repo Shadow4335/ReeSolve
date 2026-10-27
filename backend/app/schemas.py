@@ -131,6 +131,15 @@ class IncidentDetailOut(IncidentOut):
     events: list[EventOut] = []
 
 
+class ReportResultOut(BaseModel):
+    """Response of POST /reports (the submit_report return value)."""
+    report: ReportOut
+    incident: IncidentOut
+    decision: str                       # new | duplicate
+    explanation: dict[str, Any] | None
+    cluster: ClusterOut | None = None
+
+
 class ClockOut(BaseModel):
     now: datetime
     offset_seconds: float
