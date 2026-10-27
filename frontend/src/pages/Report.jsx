@@ -1,16 +1,21 @@
 import { useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
 import { MapContainer, Marker, TileLayer, useMapEvents } from 'react-leaflet'
-import icon from 'leaflet/dist/images/marker-icon.png'
-import iconRetina from 'leaflet/dist/images/marker-icon-2x.png'
-import shadow from 'leaflet/dist/images/marker-shadow.png'
 import { api } from '../api'
 import Icon from '../components/Icon'
 import { Button, Card, Chip, IconTile, PageHeader } from '../components/ui'
 import { DEMO_CENTER, DEMO_SCENARIO_ORIGIN } from '../constants'
 import { DEPT_BY_CATEGORY, REPORT_CATEGORIES } from '../lib/friendly'
 
-L.Icon.Default.mergeOptions({ iconUrl: icon, iconRetinaUrl: iconRetina, shadowUrl: shadow })
+// Inline-SVG pin (sage, like the design): no image files, so it cannot break under the bundler.
+const pinIcon = L.divIcon({
+  className: '',
+  iconSize: [36, 46],
+  iconAnchor: [18, 44],
+  html: `<svg width="36" height="46" viewBox="0 0 36 46" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))">
+    <path d="M18 2C9.7 2 3 8.6 3 16.8 3 27.5 18 44 18 44s15-16.5 15-27.2C33 8.6 26.3 2 18 2z" fill="#6b7a4f" stroke="#fff" stroke-width="2.5"/>
+    <circle cx="18" cy="17" r="6" fill="#fff"/></svg>`,
+})
 
 function ClickToMove({ onMove }) {
   useMapEvents({ click: (e) => onMove([e.latlng.lat, e.latlng.lng]) })
@@ -24,7 +29,7 @@ function PinMap({ pos, setPos }) {
     <MapContainer center={pos} zoom={15} scrollWheelZoom={false} style={{ height: 280 }} className="rounded-xl">
       <TileLayer attribution="&copy; OpenStreetMap contributors" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <ClickToMove onMove={setPos} />
-      <Marker draggable position={pos} ref={ref} eventHandlers={handlers} />
+      <Marker draggable icon={pinIcon} position={pos} ref={ref} eventHandlers={handlers} />
     </MapContainer>
   )
 }
