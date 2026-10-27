@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 
 from app import config
 from app.api import admin as admin_api
+from app.api import queries as queries_api
 from app.api import reports as reports_api
 from app.api import tasks as tasks_api
 from app import scheduler
@@ -44,6 +45,7 @@ def _conflict(_req: Request, exc: InvalidTransition) -> JSONResponse:
 app.include_router(reports_api.router, prefix="/api")
 app.include_router(tasks_api.router, prefix="/api")
 app.include_router(admin_api.router, prefix="/api")
+app.include_router(queries_api.router, prefix="/api")
 
 
 @app.get("/api/health")
