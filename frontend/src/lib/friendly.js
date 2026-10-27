@@ -14,15 +14,15 @@ export const requestId = (incidentId) => `RS-${1000 + incidentId}`
 export const fmtWhen = (ts) =>
   ts ? new Date(ts + 'Z').toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'UTC' }) : ''
 
-// Task status -> chip for residents
+// Task status -> chip for residents: tone (status colour) + i18n key for the label.
 export function statusChip(task, incident) {
-  if (!task) return { tone: 'muted', label: incident?.status === 'RESOLVED' ? 'Completed' : 'Reported' }
+  if (!task) return { tone: incident?.status === 'RESOLVED' ? 'ok' : 'paused', key: incident?.status === 'RESOLVED' ? 'chip.completed' : 'chip.reported' }
   switch (task.status) {
-    case 'PENDING_VERIFICATION': return { tone: 'peach', label: 'Was this fixed?' }
-    case 'BLOCKED': return { tone: 'warn', label: 'Waiting on another team' }
-    case 'CLOSED': return { tone: 'ok', label: 'Completed' }
-    case 'IN_PROGRESS': return { tone: 'ok', label: 'In progress' }
-    default: return task.reopen_count > 0 ? { tone: 'warn', label: 'Reopened' } : { tone: 'muted', label: 'Reported' }
+    case 'PENDING_VERIFICATION': return { tone: 'warn', key: 'chip.askFixed' }
+    case 'BLOCKED': return { tone: 'paused', key: 'chip.waiting' }
+    case 'CLOSED': return { tone: 'ok', key: 'chip.completed' }
+    case 'IN_PROGRESS': return { tone: 'info', key: 'chip.inProgress' }
+    default: return task.reopen_count > 0 ? { tone: 'danger', key: 'chip.reopened' } : { tone: 'paused', key: 'chip.reported' }
   }
 }
 

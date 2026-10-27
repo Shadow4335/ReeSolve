@@ -2,9 +2,11 @@ import { api } from '../api'
 import { usePolling } from '../hooks'
 import { CATEGORY_ICON } from '../components/Icon'
 import { Card, Chip, IconTile, PageHeader, SectionTitle } from '../components/ui'
+import { useT } from '../i18n'
 import { fmtWhen, statusChip } from '../lib/friendly'
 
 function Row({ task, incident }) {
+  const t = useT()
   const chip = statusChip(task, incident)
   const reports = incident?.report_count ?? 1
   const when = task.status === 'CLOSED' ? `Closed ${fmtWhen(task.closed_at)}` : `Reported ${fmtWhen(task.created_at)}`
@@ -20,30 +22,31 @@ function Row({ task, incident }) {
           {' · '}{when}
         </p>
       </div>
-      <Chip tone={chip.tone}>{chip.label}</Chip>
+      <Chip tone={chip.tone}>{t(chip.key)}</Chip>
     </div>
   )
 }
 
 export default function Projects() {
+  const t = useT()
   const { data: tasks } = usePolling(() => api.get('/tasks'), 4000)
   const { data: incidents } = usePolling(() => api.get('/incidents'), 4000)
   const inc = (id) => (incidents || []).find((i) => i.id === id)
   const all = tasks || []
-  const active = all.filter((t) => t.status !== 'CLOSED')
-  const done = all.filter((t) => t.status === 'CLOSED').sort((a, b) => (b.closed_at || '').localeCompare(a.closed_at || ''))
+  const active = all.filter((x) => x.status !== 'CLOSED')
+  const done = all.filter((x) => x.status === 'CLOSED').sort((a, b) => (b.closed_at || '').localeCompare(a.closed_at || ''))
   return (
     <div>
-      <PageHeader eyebrow="City projects" title="Work around your area" sub="Planned and ongoing public works, and what's recently finished." />
-      <SectionTitle>In progress</SectionTitle>
+      <PageHeader eyebrow={t('projects.eyebrow')} title={t('projects.title')} sub="Planned and ongoing public works, and what's recently finished." />
+      <SectionTitle>{t('projects.inProgress')}</SectionTitle>
       <Card className="divide-y divide-border">
         {!active.length && <p className="p-5 text-muted-foreground">Nothing in progress right now.</p>}
-        {active.map((t) => <Row key={t.id} task={t} incident={inc(t.incident_id)} />)}
+        {active.map((x) => <Row key={x.id} task={x} incident={inc(x.incident_id)} />)}
       </Card>
-      <div className="mt-10"><SectionTitle>Recently completed</SectionTitle></div>
+      <div className="mt-10"><SectionTitle>{t('projects.done')}</SectionTitle></div>
       <Card className="divide-y divide-border">
         {!done.length && <p className="p-5 text-muted-foreground">Nothing completed yet.</p>}
-        {done.map((t) => <Row key={t.id} task={t} incident={inc(t.incident_id)} />)}
+        {done.map((x) => <Row key={x.id} task={x} incident={inc(x.incident_id)} />)}
       </Card>
     </div>
   )

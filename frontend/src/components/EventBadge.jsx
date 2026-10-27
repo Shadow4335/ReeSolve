@@ -1,31 +1,21 @@
-const COLORS = {
-  REPORT_RECEIVED: 'bg-slate-200 text-slate-800',
-  INCIDENT_CREATED: 'bg-blue-100 text-blue-800',
-  DUPLICATE_MERGED: 'bg-indigo-100 text-indigo-800',
-  RELATED_LINKED: 'bg-purple-100 text-purple-800',
-  TASK_CREATED: 'bg-blue-100 text-blue-800',
-  TASK_BLOCKED: 'bg-slate-300 text-slate-800',
-  TASK_UNBLOCKED: 'bg-teal-100 text-teal-800',
-  PRIORITY_RAISED: 'bg-orange-100 text-orange-800',
-  TASK_STARTED: 'bg-cyan-100 text-cyan-800',
-  SLA_WARNING: 'bg-amber-200 text-amber-900',
-  SLA_BREACHED: 'bg-red-200 text-red-900',
-  ESCALATED: 'bg-red-600 text-white',
-  CLOSURE_SUBMITTED: 'bg-sky-100 text-sky-800',
-  CLOSURE_REJECTED: 'bg-rose-200 text-rose-900',
-  VERIFICATION_REQUESTED: 'bg-sky-100 text-sky-800',
-  CITIZEN_CONFIRMED: 'bg-green-200 text-green-900',
-  CITIZEN_REJECTED: 'bg-rose-200 text-rose-900',
-  CONTRADICTION_DETECTED: 'bg-red-600 text-white',
-  TASK_REOPENED: 'bg-orange-500 text-white',
-  TASK_CLOSED: 'bg-green-600 text-white',
-  INCIDENT_RESOLVED: 'bg-emerald-600 text-white',
-  CLOCK_ADVANCED: 'bg-slate-700 text-white',
+// Event type -> status colour. ok = green, warn = amber, danger (breached / reopened) = red, paused = slate, info = navy.
+const OK = new Set(['CITIZEN_CONFIRMED', 'TASK_CLOSED', 'INCIDENT_RESOLVED', 'TASK_UNBLOCKED'])
+const WARN = new Set(['SLA_WARNING', 'PRIORITY_RAISED'])
+const DANGER = new Set(['SLA_BREACHED', 'ESCALATED', 'CONTRADICTION_DETECTED', 'TASK_REOPENED', 'CITIZEN_REJECTED', 'CLOSURE_REJECTED'])
+const PAUSED = new Set(['TASK_BLOCKED'])
+
+function styleFor(type) {
+  if (OK.has(type)) return 'bg-ok text-white'
+  if (DANGER.has(type)) return 'bg-danger text-white'
+  if (PAUSED.has(type)) return 'bg-paused text-white'
+  if (WARN.has(type)) return 'border border-warn bg-warn-tint text-ink'
+  if (type === 'CLOCK_ADVANCED') return 'bg-navy-900 text-white'
+  return 'bg-navy-50 text-navy-700'
 }
 
 export default function EventBadge({ type }) {
   return (
-    <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ${COLORS[type] || 'bg-slate-200'}`}>
+    <span className={`whitespace-nowrap rounded px-2 py-0.5 text-xs font-semibold ${styleFor(type)}`}>
       {type.replace(/_/g, ' ')}
     </span>
   )

@@ -24,7 +24,7 @@ const persist = (session) => {
   } catch { /* private mode */ }
 }
 
-// "citizen" | "dept:ROADS" | "admin": the key the sidebar role switcher uses.
+// "citizen" | "dept:ROADS" | "admin": the key the header role switcher uses.
 export const roleKeyOf = (s) => (s.role === 'department' ? `dept:${s.department}` : s.role)
 
 const AuthContext = createContext(null)
@@ -42,7 +42,7 @@ export function AuthProvider({ children }) {
     setSession(REQUIRE_LOGIN ? null : GUEST_SESSION)
   }, [])
 
-  // The sidebar role switcher updates the session instead of fighting it.
+  // The header role switcher updates the session instead of fighting it.
   const setRoleKey = useCallback((key) => {
     setSession((cur) => {
       const name = cur?.name || GUEST_SESSION.name

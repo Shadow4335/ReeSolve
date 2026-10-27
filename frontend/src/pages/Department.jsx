@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { api } from '../api'
 import { usePolling } from '../hooks'
 import SlaBadge from '../components/SlaBadge'
-import { Button, Card, Chip, PageHeader } from '../components/ui'
+import { Button, Card, Chip, PageHeader, StatusKey } from '../components/ui'
 import { DEMO_PHOTO_URL } from '../constants'
+import { useT } from '../i18n'
 
 const input = 'w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary'
 
 function CloseForm({ task, incident, onDone }) {
+  const t = useT()
   const [note, setNote] = useState('')
   const [photo, setPhoto] = useState('')
   const [loc, setLoc] = useState(null)
@@ -34,13 +36,14 @@ function CloseForm({ task, incident, onDone }) {
         <Button type="button" variant="soft" onClick={() => setLoc({ lat: incident.lat, lng: incident.lng })}>Use incident location</Button>
         <span className="text-sm text-muted-foreground">{loc ? `${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}` : 'no location set'}</span>
       </div>
-      <Button onClick={submit}>Submit closure</Button>
+      <Button onClick={submit}>{t('btn.submitClosure')}</Button>
       {result && <p className={`text-sm font-semibold ${result.bad ? 'text-destructive' : 'text-primary'}`}>{result.text}</p>}
     </div>
   )
 }
 
 function TaskCard({ task, incident, depTask, reload }) {
+  const t = useT()
   const [closing, setClosing] = useState(false)
   const [err, setErr] = useState('')
   const start = async () => {
@@ -52,22 +55,22 @@ function TaskCard({ task, incident, depTask, reload }) {
     <Card className="p-5">
       <div className="flex flex-wrap items-center gap-2">
         <h3 className="mr-2 text-lg font-semibold">Task #{task.id}: {task.incident_summary}</h3>
-        <Chip tone={task.priority === 'HIGH' || task.priority === 'CRITICAL' ? 'danger' : 'muted'} dot={false}>{task.priority}</Chip>
+        <Chip tone={task.priority === 'CRITICAL' ? 'danger' : task.priority === 'HIGH' ? 'warn' : 'muted'} dot={false}>{task.priority}</Chip>
         <Chip tone="muted" dot={false}>{task.status.replace('_', ' ')}</Chip>
-        {task.reopen_count > 0 && <Chip tone="warn" dot={false}>Reopened ×{task.reopen_count}</Chip>}
+        {task.reopen_count > 0 && <Chip tone="danger" dot={false}>Reopened ×{task.reopen_count}</Chip>}
       </div>
       <div className="mt-3"><SlaBadge task={task} /></div>
       {task.status === 'BLOCKED' && (
-        <div className="mt-3 rounded-xl bg-warn p-3 font-semibold text-warn-foreground">
+        <div className="mt-3 rounded border border-paused bg-paused-tint p-3 font-semibold text-ink">
           Waiting for {depTask?.department_name || 'another department'} (task #{task.depends_on_task_id}). SLA clock is paused.
         </div>
       )}
       {task.is_lead && <p className="mt-3 text-sm font-semibold text-primary">Lead task: other departments are waiting on this one.</p>}
-      {task.status === 'PENDING_VERIFICATION' && <p className="mt-3 text-sm font-semibold text-peach-foreground">Waiting for residents to confirm the fix.</p>}
+      {task.status === 'PENDING_VERIFICATION' && <p className="mt-3 text-sm font-semibold text-ink">Waiting for residents to confirm the fix.</p>}
       {canWork && (
         <div className="mt-4 flex gap-2">
-          {task.status === 'OPEN' && <Button onClick={start}>Start</Button>}
-          <Button variant="dark" onClick={() => setClosing(!closing)}>Close…</Button>
+          {task.status === 'OPEN' && <Button onClick={start}>{t('btn.start')}</Button>}
+          <Button variant="dark" onClick={() => setClosing(!closing)}>{t('btn.close')}</Button>
         </div>
       )}
       {err && <p className="mt-2 text-sm font-semibold text-destructive">{err}</p>}
@@ -77,20 +80,22 @@ function TaskCard({ task, incident, depTask, reload }) {
 }
 
 export default function Department({ code }) {
+  const t = useT()
   const { data: tasks, reload } = usePolling(() => api.get(`/tasks?department=${code}`), 3000, [code])
   const { data: all } = usePolling(() => api.get('/tasks'), 5000)
   const { data: incidents } = usePolling(() => api.get('/incidents'), 5000)
-  const active = (tasks || []).filter((t) => t.status !== 'CLOSED')
-  const done = (tasks || []).filter((t) => t.status === 'CLOSED')
+  const active = (tasks || []).filter((x) => x.status !== 'CLOSED')
+  const done = (tasks || []).filter((x) => x.status === 'CLOSED')
   const incOf = (id) => incidents?.find((i) => i.id === id)
   return (
     <div>
-      <PageHeader eyebrow={`Department ${code}`} title="Task queue" sub="Most urgent first. A task only closes once residents confirm the fix." />
+      <PageHeader eyebrow={t('dept.eyebrow', { code })} title={t('dept.title')} sub={t('dept.sub')} />
+      <div className="mb-4"><StatusKey t={t} /></div>
       <div className="space-y-4">
         {tasks && !active.length && <p className="text-muted-foreground">No active tasks.</p>}
-        {active.map((t) => <TaskCard key={t.id} task={t} incident={incOf(t.incident_id)} depTask={all?.find((x) => x.id === t.depends_on_task_id)} reload={reload} />)}
+        {active.map((x) => <TaskCard key={x.id} task={x} incident={incOf(x.incident_id)} depTask={all?.find((y) => y.id === x.depends_on_task_id)} reload={reload} />)}
         {done.length > 0 && <h2 className="pt-4 text-xl font-semibold">Closed ({done.length})</h2>}
-        {done.map((t) => <TaskCard key={t.id} task={t} incident={incOf(t.incident_id)} reload={reload} />)}
+        {done.map((x) => <TaskCard key={x.id} task={x} incident={incOf(x.incident_id)} reload={reload} />)}
       </div>
     </div>
   )

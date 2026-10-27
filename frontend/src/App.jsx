@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { api } from './api'
-import Icon from './components/Icon'
-import Logo from './components/Logo'
+import Layout from './components/layout/Layout'
 import Overview from './pages/Overview'
 import Report from './pages/Report'
 import Projects from './pages/Projects'
@@ -12,18 +11,20 @@ import Admin from './pages/Admin'
 import Login from './pages/Login'
 import { AuthProvider, roleKeyOf, useAuth } from './auth/AuthContext'
 import RequireAuth from './auth/RequireAuth'
+import { I18nProvider, useT } from './i18n'
 import { DEPARTMENTS, deptName } from './lib/departments'
 import { addMine } from './lib/friendly'
 import { LANDING_PATH, PAGE_PATH, PATH_PAGE, canOpen } from './lib/routes'
 import { navigate, splitLocation, useLocation } from './router'
 
 const MENUS = {
-  citizen: [['overview', 'Overview', 'grid'], ['report', 'Report a problem', 'plus'], ['projects', 'City projects', 'folder'], ['requests', 'My requests', 'clipboard']],
-  department: [['queue', 'Task queue', 'clipboard']],
-  admin: [['admin', 'Operations', 'grid']],
+  citizen: [['overview', 'nav.overview'], ['report', 'nav.report'], ['projects', 'nav.projects'], ['requests', 'nav.requests']],
+  department: [['queue', 'nav.queue']],
+  admin: [['admin', 'nav.operations']],
 }
 
 function SimClock() {
+  const t = useT()
   const [now, setNow] = useState(null)
   useEffect(() => {
     const tick = () => api.get('/admin/clock').then((c) => setNow(c.now)).catch(() => setNow(null))
@@ -32,27 +33,26 @@ function SimClock() {
     return () => clearInterval(id)
   }, [])
   return (
-    <div className="rounded-xl bg-muted px-3 py-2 text-xs text-muted-foreground">
-      <div className="font-semibold uppercase tracking-wider">Simulated time</div>
-      <div className="mt-0.5 font-mono text-sm text-foreground">{now ? now.replace('T', ' ').slice(0, 16) : '--'}</div>
+    <div className="rounded border border-border bg-navy-50 px-2.5 py-1.5 text-xs">
+      <span className="font-semibold text-muted-foreground">{t('clock.label')}</span>{' '}
+      <span className="font-mono tabular-nums text-ink">{now ? now.replace('T', ' ').slice(0, 16) : '--'}</span>
     </div>
   )
 }
 
 function UserBlock({ session, requireLogin, onSignOut }) {
-  const roleLabel = session.role === 'department' ? `${deptName(session.department)} staff` : session.role === 'admin' ? 'City admin' : 'Resident'
+  const t = useT()
+  const roleLabel = session.role === 'department' ? t('role.staff', { name: deptName(session.department) }) : session.role === 'admin' ? t('role.admin') : t('role.resident')
   return (
-    <div className="rounded-xl border border-border bg-card p-3">
-      <div className="flex items-center gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent font-semibold text-primary">{session.name.trim()[0]?.toUpperCase() || '?'}</span>
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold">{session.name}</div>
-          <div className="truncate text-xs text-muted-foreground">{roleLabel}</div>
-        </div>
+    <div className="flex items-center gap-2 rounded border border-border bg-white py-1 pl-1 pr-2">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-navy-50 text-sm font-bold text-navy-700">{session.name.trim()[0]?.toUpperCase() || '?'}</span>
+      <div className="min-w-0 leading-tight">
+        <div className="max-w-[9rem] truncate text-sm font-semibold">{session.name}</div>
+        <div className="max-w-[9rem] truncate text-xs text-muted-foreground">{roleLabel}</div>
       </div>
       {requireLogin && (
-        <button onClick={onSignOut} className="mt-3 w-full rounded-lg border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
-          Sign out
+        <button onClick={onSignOut} className="ml-1 rounded border border-navy-700 bg-white px-2 py-1 text-xs font-semibold text-navy-700 hover:bg-navy-50">
+          {t('auth.signOut')}
         </button>
       )}
     </div>
@@ -60,6 +60,7 @@ function UserBlock({ session, requireLogin, onSignOut }) {
 }
 
 function Frame({ path }) {
+  const t = useT()
   const { session, requireLogin, signOut, setRoleKey } = useAuth()
   const [reportCategory, setReportCategory] = useState(null)
   const [focus, setFocus] = useState({ incidentId: null })
@@ -87,47 +88,29 @@ function Frame({ path }) {
   const softSignOut = () => {
     setLeaving(true)
     // Clear the session synchronously first so /login never renders while still signed in (no bogus ?from=).
-    setTimeout(() => { flushSync(() => signOut()); navigate('/login', { replace: true }) }, 260)
+    setTimeout(() => { flushSync(() => signOut()); navigate('/login', { replace: true }) }, 220)
   }
 
-  return (
-    <div className={`min-h-screen animate-page-in transition-opacity duration-300 md:flex ${leaving ? 'opacity-0' : ''}`}>
-      <aside className="shrink-0 border-b border-border bg-sidebar p-4 md:sticky md:top-0 md:flex md:h-screen md:w-60 md:flex-col md:overflow-y-auto md:border-b-0 md:border-r">
-        <Logo />
-
-        <label htmlFor="role-switch" className="mt-5 block text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Viewing as</label>
-        <select id="role-switch" value={roleKeyOf(session)} onChange={(e) => changeRole(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-card px-3 py-2 text-sm font-medium">
-          <option value="citizen">Resident</option>
-          {DEPARTMENTS.map(([c, n]) => <option key={c} value={`dept:${c}`}>Department: {n}</option>)}
-          <option value="admin">City admin</option>
+  const nav = MENUS[role].map(([key, labelKey]) => ({ key, label: t(labelKey), active: page === key, onClick: () => go(key) }))
+  const controls = (
+    <>
+      <label className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+        {t('role.viewingAs')}
+        <select id="role-switch" value={roleKeyOf(session)} onChange={(e) => changeRole(e.target.value)} className="rounded border border-border bg-white px-2 py-1.5 text-sm font-medium text-ink">
+          <option value="citizen">{t('role.resident')}</option>
+          {DEPARTMENTS.map(([c, n]) => <option key={c} value={`dept:${c}`}>{t('role.department', { name: n })}</option>)}
+          <option value="admin">{t('role.admin')}</option>
         </select>
+      </label>
+      <UserBlock session={session} requireLogin={requireLogin} onSignOut={softSignOut} />
+      <SimClock />
+    </>
+  )
 
-        <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Menu</p>
-        <nav className="mt-2 flex gap-1 overflow-x-auto md:flex-col">
-          {MENUS[role].map(([key, label, icon]) => (
-            <button
-              key={key}
-              onClick={() => go(key)}
-              className={`flex items-center gap-3 whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-medium ${page === key ? 'bg-sidebar-accent' : 'hover:bg-muted'}`}
-            >
-              <Icon name={icon} className="h-4 w-4" />
-              {label}
-            </button>
-          ))}
-        </nav>
-
-        <div className="mt-4 space-y-3 md:mt-auto">
-          <UserBlock session={session} requireLogin={requireLogin} onSignOut={softSignOut} />
-          <SimClock />
-          <div className="rounded-xl border border-peach bg-peach p-3 text-peach-foreground">
-            <div className="flex items-center gap-2 text-sm font-semibold"><Icon name="phone" className="h-4 w-4" /> Need urgent help?</div>
-            <p className="mt-1 text-xs">For danger to life, call 112.</p>
-          </div>
-        </div>
-      </aside>
-
-      <main className="min-w-0 flex-1 p-6 md:p-10">
-        <div className="mx-auto max-w-5xl">
+  return (
+    <div className={`transition-opacity duration-200 ${leaving ? 'opacity-0' : ''}`}>
+      <Layout nav={nav} controls={controls} quickLinks={nav}>
+        <div key={page} className="animate-page-in">
           {page === 'overview' && <Overview go={go} />}
           {page === 'report' && <Report category={reportCategory} onFollow={followRequest} />}
           {page === 'projects' && <Projects go={go} />}
@@ -135,7 +118,7 @@ function Frame({ path }) {
           {page === 'queue' && <Department code={session.department} />}
           {page === 'admin' && <Admin />}
         </div>
-      </main>
+      </Layout>
     </div>
   )
 }
@@ -148,8 +131,10 @@ function Routes() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Routes />
-    </AuthProvider>
+    <I18nProvider>
+      <AuthProvider>
+        <Routes />
+      </AuthProvider>
+    </I18nProvider>
   )
 }

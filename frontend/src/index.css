@@ -2,44 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ---------------------------------------------------------------------------------------------------------------
+   THEME FILE: the only place colour values are defined ("Tricolour Restrained").
+   Saffron is an accent only (stripe, active underline, focus ring, highlights, HIGH marker): never text on white,
+   and navy text (not white) sits on top of it. Status colours mean the same thing everywhere.
+   --------------------------------------------------------------------------------------------------------------- */
 :root {
-  --background: oklch(97.5% 0.008 85);
-  --foreground: oklch(26% 0.01 75);
-  --card: oklch(99.3% 0.004 85);
-  --border: oklch(90% 0.012 85);
-  --primary: oklch(50% 0.05 125);
-  --primary-foreground: oklch(98.5% 0.006 85);
-  --muted: oklch(94.5% 0.012 85);
-  --muted-foreground: oklch(50% 0.012 75);
-  --accent: oklch(93% 0.025 120);
-  --sidebar: oklch(96% 0.01 85);
-  --sidebar-accent: oklch(92% 0.022 115);
-  --destructive: oklch(55% 0.15 30);
-  --peach: oklch(94% 0.03 50);
-  --peach-foreground: oklch(40% 0.08 40);
-  --warn: oklch(93% 0.06 85);
-  --warn-foreground: oklch(40% 0.09 70);
-  --danger: oklch(93% 0.04 30);
-  --danger-foreground: oklch(42% 0.14 30);
+  /* brand */
+  --navy-900: #081F54;
+  --navy-700: #0B2A6F;
+  --navy-50: #E8EEF9;
+  --saffron: #FF9933;
+  --india-green: #138808;
+  --white: #FFFFFF;
+  /* neutrals */
+  --bg: #F5F7FA;
+  --surface: #FFFFFF;
+  --ink: #1B2430;
+  --muted: #5F6B7A;
+  --border: #D5DCE6;
+  /* status */
+  --ok: #138808;
+  --warn: #B7791F;
+  --danger: #C62828;
+  --paused: #5F6B7A;
+  /* tints derived from the tokens above (text on them is always ink) */
+  --ok-tint: color-mix(in srgb, var(--ok) 11%, var(--white));
+  --warn-tint: color-mix(in srgb, var(--warn) 14%, var(--white));
+  --danger-tint: color-mix(in srgb, var(--danger) 10%, var(--white));
+  --paused-tint: color-mix(in srgb, var(--paused) 12%, var(--white));
+  --shadow: color-mix(in srgb, var(--navy-900) 10%, transparent);
 }
 
 @layer base {
-  body {
-    @apply bg-background font-sans text-foreground antialiased;
-  }
-  h1, h2, h3 {
-    @apply font-display;
+  html { font-size: 16px; }
+  body { @apply bg-background font-sans text-ink antialiased; }
+  h1, h2, h3 { @apply font-semibold text-navy-900; }
+  /* Visible keyboard focus: saffron ring with a 2px offset. */
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 3px solid var(--saffron);
+    outline-offset: 2px;
   }
 }
 
-/* Reduced motion: no movement, simple fades only. Redefining the keyframes after Tailwind's output wins. */
+/* Reduced motion: no movement, simple fades; infinite loops (including third-party ones) run once. */
 @media (prefers-reduced-motion: reduce) {
   @keyframes rise { from { opacity: 0; } to { opacity: 1; } }
   @keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes msgIn { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes pop { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes settle { from { opacity: 0; } to { opacity: 1; } }
   @keyframes shake { from, to { transform: none; } }
   @keyframes leave { from { opacity: 1; } to { opacity: 0; } }
-  .animate-drift, .animate-float, .animate-driftx, .animate-glow { animation: none !important; }
+  *, *::before, *::after { animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
   .slide-pill, .height-anim { transition: none !important; }
 }

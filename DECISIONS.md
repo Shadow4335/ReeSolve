@@ -44,3 +44,4 @@
 - Backend addition for the Report page's category picker: optional `category_hint` on `POST /reports` (+ `submit_report(..., category_hint=None)` trailing kwarg, frozen signature stays backward compatible). A category overrides keyword intake; 'water' lets keywords choose drain_blockage vs water_leak (default water_leak); Parks/Public facilities/Construction map to `other`. Unknown hints are ignored. Tests added.
 - FIX: Report-page map pin showed a broken "?" icon (Leaflet's default marker prepends its own image path under Vite). Replaced with an inline-SVG sage pin (`L.divIcon`), no image assets; click-to-place and drag verified in the browser.
 - Login Page added (demo-only frontend sign-in) before M9; backend remains auth-free; disable with VITE_REQUIRE_LOGIN=false.
+- UI re-themed to 'Tricolour Restrained' (navy/saffron/green, Noto Sans, official-style chrome, EN/HI toggle) before M9; prototype disclaimer in footer; no state emblem used.

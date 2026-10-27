@@ -1,4 +1,4 @@
-// The five departments (CONTEXT.md 4.1). Shared by the sidebar role switcher and the login page.
+// The five departments (CONTEXT.md 4.1). Shared by the header role switcher and the login page.
 export const DEPARTMENTS = [
   ['ROADS', 'Roads & Infrastructure'],
   ['WATER', 'Water & Sewerage'],

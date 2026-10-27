@@ -4,9 +4,11 @@ import { usePolling } from '../hooks'
 import { CATEGORY_ICON } from '../components/Icon'
 import SlaBadge from '../components/SlaBadge'
 import { Button, Card, Chip, IconTile, PageHeader } from '../components/ui'
+import { useT } from '../i18n'
 import { addMine, fmtWhen, friendlyEvent, loadMine, requestId, saveMine, statusChip } from '../lib/friendly'
 
 function VerifyPanel({ task, reports, reportId, onDone }) {
+  const t = useT()
   const askable = reports.slice(0, 5)
   const [rid, setRid] = useState(askable.some((r) => r.id === reportId) ? reportId : askable[0]?.id)
   const [comment, setComment] = useState('')
@@ -22,11 +24,11 @@ function VerifyPanel({ task, reports, reportId, onDone }) {
     }
   }
   return (
-    <div className="mt-4 rounded-xl bg-peach p-4 text-peach-foreground">
+    <div className="mt-4 rounded border border-warn bg-warn-tint p-4 text-ink">
       <p className="font-semibold">The team says this is fixed. Is it?</p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Button onClick={() => send(true)}>Yes, it's fixed</Button>
-        <Button variant="soft" onClick={() => send(false)}>No, still a problem</Button>
+        <Button variant="success" onClick={() => send(true)}>{t('btn.yesFixed')}</Button>
+        <Button variant="soft" onClick={() => send(false)}>{t('btn.noFixed')}</Button>
         <input className="min-w-[180px] flex-1 rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground" placeholder="Add a note (optional)" value={comment} onChange={(e) => setComment(e.target.value)} />
       </div>
       <label className="mt-3 flex items-center gap-2 text-xs">
@@ -41,12 +43,13 @@ function VerifyPanel({ task, reports, reportId, onDone }) {
 }
 
 function RequestCard({ incidentId, reportId, onRemove }) {
+  const t = useT()
   const { data: inc, reload } = usePolling(() => api.get(`/incidents/${incidentId}`), 3000, [incidentId])
   const { data: all } = usePolling(() => api.get('/tasks'), 6000)
   if (!inc) return <Card className="p-6 text-muted-foreground">Loading request…</Card>
   const task = inc.tasks[0]
   const chip = statusChip(task, inc)
-  const deptOf = (id) => all?.find((t) => t.id === id)?.department_name
+  const deptOf = (id) => all?.find((x) => x.id === id)?.department_name
   const lines = inc.events.map((e) => ({ e, text: friendlyEvent(e, task?.department_name) })).filter((x) => x.text)
   return (
     <Card className="p-6">
@@ -60,12 +63,12 @@ function RequestCard({ incidentId, reportId, onRemove }) {
             {inc.report_count > 1 ? ` · ${inc.report_count} residents reported this` : ''}
           </p>
         </div>
-        <Chip tone={chip.tone}>{chip.label}</Chip>
+        <Chip tone={chip.tone}>{t(chip.key)}</Chip>
       </div>
 
       {task && <div className="mt-3"><SlaBadge task={task} /></div>}
       {task?.status === 'BLOCKED' && (
-        <p className="mt-3 rounded-xl bg-warn p-3 text-sm font-medium text-warn-foreground">
+        <p className="mt-3 rounded border border-paused bg-paused-tint p-3 text-sm font-medium text-ink">
           Waiting for {deptOf(task.depends_on_task_id) || 'another team'} to finish first. The clock is paused, so no one is penalised for waiting.
         </p>
       )}
@@ -75,7 +78,7 @@ function RequestCard({ incidentId, reportId, onRemove }) {
       <ol className="relative ml-1.5 mt-6 border-l-2 border-border">
         {lines.map(({ e, text }) => (
           <li key={e.id} className="mb-4 ml-5">
-            <span className="absolute -left-[7px] mt-1.5 h-3 w-3 rounded-full bg-primary" />
+            <span className="absolute -left-[7px] mt-1.5 h-3 w-3 rounded-full border-2 border-white bg-navy-700" />
             <p className="font-medium">{text}</p>
             <p className="text-xs text-muted-foreground">{fmtWhen(e.ts)}</p>
             <details className="text-xs text-muted-foreground">
@@ -92,6 +95,7 @@ function RequestCard({ incidentId, reportId, onRemove }) {
 }
 
 export default function Track({ focusIncident, go }) {
+  const t = useT()
   const [mine, setMine] = useState(() => loadMine())
   const { data: incidents } = usePolling(() => api.get('/incidents'), 5000)
   const remove = (id) => { const n = mine.filter((m) => m.incidentId !== id); saveMine(n); setMine(n) }
@@ -99,13 +103,13 @@ export default function Track({ focusIncident, go }) {
 
   return (
     <div>
-      <PageHeader eyebrow="My requests" title="Your reports" sub="We only close a report once residents confirm it's fixed." />
+      <PageHeader eyebrow={t('track.eyebrow')} title={t('track.title')} sub={t('track.sub')} />
       <div className="space-y-5">
         {!ordered.length && (
           <Card className="p-6">
             <p className="font-semibold">You aren't following any request yet.</p>
             <p className="mt-1 text-sm text-muted-foreground">Reports you submit appear here with a live, plain-language timeline.</p>
-            <Button className="mt-4" onClick={() => go('report')}>Report a problem</Button>
+            <Button className="mt-4" onClick={() => go('report')}>{t('btn.report')}</Button>
           </Card>
         )}
         {ordered.map((m) => <RequestCard key={m.incidentId} incidentId={m.incidentId} reportId={m.reportId} onRemove={() => remove(m.incidentId)} />)}

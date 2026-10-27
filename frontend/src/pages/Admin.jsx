@@ -3,13 +3,15 @@ import { MapContainer, TileLayer, CircleMarker, Polyline, Popup } from 'react-le
 import { api } from '../api'
 import { usePolling } from '../hooks'
 import EventBadge, { fmtTs } from '../components/EventBadge'
-import { Button, Card, PageHeader } from '../components/ui'
-import { CLUSTER_COLOR, DEMO_CENTER, PRIORITY_COLOR } from '../constants'
+import { Button, Card, PageHeader, StatusKey } from '../components/ui'
+import { DEMO_CENTER } from '../constants'
+import { useT } from '../i18n'
+import { clusterColor, fixedColor, priorityColor } from '../lib/theme'
 
-function Stat({ label, value, tone = 'text-foreground' }) {
+function Stat({ label, value, tone = 'text-navy-900' }) {
   return (
     <Card className="p-4">
-      <div className={`font-display text-4xl font-semibold ${tone}`}>{value ?? '-'}</div>
+      <div className={`text-4xl font-bold ${tone}`}>{value ?? '-'}</div>
       <div className="mt-1 text-sm text-muted-foreground">{label}</div>
     </Card>
   )
@@ -17,8 +19,8 @@ function Stat({ label, value, tone = 'text-foreground' }) {
 
 function Bar({ pct, color }) {
   return (
-    <div className="h-3 w-full rounded-full bg-muted">
-      <div className={`h-3 rounded-full ${color}`} style={{ width: `${pct ?? 0}%` }} />
+    <div className="h-3 w-full rounded-sm bg-navy-50">
+      <div className={`h-3 rounded-sm ${color}`} style={{ width: `${pct ?? 0}%` }} />
     </div>
   )
 }
@@ -27,7 +29,7 @@ function IncidentMap({ incidents }) {
   const byCluster = {}
   incidents.forEach((i) => i.cluster_id && (byCluster[i.cluster_id] ||= []).push(i))
   return (
-    <MapContainer center={DEMO_CENTER} zoom={14} scrollWheelZoom={false} style={{ height: 440 }} className="rounded-xl">
+    <MapContainer center={DEMO_CENTER} zoom={14} scrollWheelZoom={false} style={{ height: 440 }} className="rounded">
       <TileLayer
         attribution="&copy; OpenStreetMap contributors"
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -37,7 +39,7 @@ function IncidentMap({ incidents }) {
           <Polyline
             key={`${id}-${k}`}
             positions={[[members[0].lat, members[0].lng], [m.lat, m.lng]]}
-            pathOptions={{ color: CLUSTER_COLOR, weight: 4, dashArray: '8 6' }}
+            pathOptions={{ color: clusterColor(), weight: 3, dashArray: '8 6' }}
           />
         )),
       )}
@@ -47,9 +49,9 @@ function IncidentMap({ incidents }) {
           center={[i.lat, i.lng]}
           radius={8 + Math.min(i.report_count, 8)}
           pathOptions={{
-            color: '#0f172a',
-            weight: i.status === 'RESOLVED' ? 1 : 3,
-            fillColor: i.status === 'RESOLVED' ? '#94a3b8' : PRIORITY_COLOR[i.priority],
+            color: clusterColor(),
+            weight: i.status === 'RESOLVED' ? 1 : 2,
+            fillColor: i.status === 'RESOLVED' ? fixedColor() : priorityColor(i.priority),
             fillOpacity: 0.85,
           }}
         >
@@ -68,6 +70,7 @@ function IncidentMap({ incidents }) {
 }
 
 function Feed() {
+  const t = useT()
   const [events, setEvents] = useState([])
   const lastId = useRef(0)
   useEffect(() => {
@@ -98,7 +101,7 @@ function Feed() {
   }, [])
   return (
     <Card className="h-[640px] overflow-y-auto p-4">
-      <h3 className="mb-3 text-xl font-semibold">Live feed</h3>
+      <h3 className="mb-3 text-xl font-semibold">{t('admin.feed')}</h3>
       {!events.length && <p className="text-muted-foreground">No events yet.</p>}
       <ul className="space-y-2">
         {events.map((e) => (
@@ -116,6 +119,7 @@ function Feed() {
 }
 
 export default function Admin() {
+  const t = useT()
   const { data: incidents } = usePolling(() => api.get('/incidents'), 3000)
   const { data: stats, reload: reloadStats } = usePolling(() => api.get('/admin/stats'), 3000)
   const [busy, setBusy] = useState(false)
@@ -135,11 +139,11 @@ export default function Admin() {
     }
   }
   const advance = (h) => act(`+${h}h`, () => api.post('/admin/clock/advance', { hours: h }))
-  const t = stats?.totals
+  const totals = stats?.totals
 
   return (
     <div className="space-y-5">
-      <PageHeader eyebrow="City admin" title="Operations" sub="Every decision the system makes, with the reason, as it happens." />
+      <PageHeader eyebrow={t('admin.eyebrow')} title={t('admin.title')} sub={t('admin.sub')} />
       <Card className="flex flex-wrap items-center gap-2 p-4">
         <span className="mr-2 font-semibold">Simulated clock</span>
         {[1, 24, 72].map((h) => (
@@ -153,29 +157,31 @@ export default function Admin() {
         <span className="text-sm text-muted-foreground">{msg}</span>
       </Card>
 
+      <StatusKey t={t} />
+
       <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
-        <Stat label="Incidents" value={t?.incidents} />
-        <Stat label="Open tasks" value={t?.open_tasks} />
-        <Stat label="Past SLA now" value={t?.currently_breached} tone="text-destructive" />
-        <Stat label="Reopens" value={t?.reopens} tone="text-warn-foreground" />
-        <Stat label="Low-confidence closes" value={t?.low_confidence_closures} tone="text-warn-foreground" />
+        <Stat label="Incidents" value={totals?.incidents} />
+        <Stat label="Open tasks" value={totals?.open_tasks} />
+        <Stat label="Past SLA now" value={totals?.currently_breached} tone="text-danger" />
+        <Stat label="Reopens" value={totals?.reopens} tone="text-danger" />
+        <Stat label="Low-confidence closes" value={totals?.low_confidence_closures} tone="text-warn" />
         <Stat label="Avg resolution (h)" value={stats?.avg_resolution_hours} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
+        <div className="min-w-0 space-y-4 lg:col-span-2">
           <Card className="p-3"><IncidentMap incidents={incidents || []} /></Card>
           <Card className="p-5">
-            <h3 className="mb-3 text-xl font-semibold">Department performance</h3>
-            <div className="grid grid-cols-[170px_1fr_1fr] items-center gap-x-4 gap-y-3 text-sm">
-              <span />
-              <span className="font-semibold text-primary">SLA compliance %</span>
-              <span className="font-semibold text-destructive">Reopen rate %</span>
+            <h3 className="mb-3 text-xl font-semibold">{t('admin.perf')}</h3>
+            <div className="grid items-center gap-x-4 gap-y-4 text-sm sm:grid-cols-[170px_1fr_1fr] sm:gap-y-3">
+              <span className="hidden sm:block" />
+              <span className="hidden font-semibold text-ink sm:block">SLA compliance %</span>
+              <span className="hidden font-semibold text-ink sm:block">Reopen rate %</span>
               {(stats?.by_department || []).map((d) => (
-                <div key={d.code} className="contents">
+                <div key={d.code} className="grid gap-1.5 sm:contents">
                   <span className="font-semibold">{d.name}<span className="ml-1 font-normal text-muted-foreground">({d.total_tasks})</span></span>
-                  <div className="flex items-center gap-2"><Bar pct={d.sla_compliance_pct} color="bg-primary" /><span className="w-10 text-right">{d.sla_compliance_pct ?? '-'}</span></div>
-                  <div className="flex items-center gap-2"><Bar pct={d.reopen_rate_pct} color="bg-destructive" /><span className="w-10 text-right">{d.reopen_rate_pct ?? '-'}</span></div>
+                  <div className="flex items-center gap-2"><span className="w-20 shrink-0 text-xs text-muted-foreground sm:hidden">SLA %</span><Bar pct={d.sla_compliance_pct} color="bg-ok" /><span className="w-10 shrink-0 text-right">{d.sla_compliance_pct ?? '-'}</span></div>
+                  <div className="flex items-center gap-2"><span className="w-20 shrink-0 text-xs text-muted-foreground sm:hidden">Reopen %</span><Bar pct={d.reopen_rate_pct} color="bg-danger" /><span className="w-10 shrink-0 text-right">{d.reopen_rate_pct ?? '-'}</span></div>
                 </div>
               ))}
             </div>
