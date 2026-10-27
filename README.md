@@ -195,7 +195,7 @@ reesolve/
 
 | Contributor | Contribution |
 |---|---|
-| **Main developer (Shadow4335)** | Repository scaffold, data model, intake, dedup and clustering, assignment, SLA and escalation engine, verification and reopen engine, admin endpoints, scripted demo, the frontend, docs |
+| **Main developer: Arnav Verma (Shadow4335)** | Repository scaffold, data model, intake, dedup and clustering, assignment, SLA and escalation engine, verification and reopen engine, admin endpoints, scripted demo, the frontend, docs |
 | **Aden** | The read-side query router (`backend/app/api/queries.py`) |
 | **Sejal Kundnani** | The seed dataset and seed script (`seed/`, `backend/scripts/seed.py`) |
 | **Harshita Khandelwal** | The SLA badge component (`frontend/src/components/SlaBadge.jsx`) |
