@@ -1,298 +1,138 @@
-"""Rule-based routing and priority scoring for citizen complaints.
+"""Routing: priority, task creation, SLA assignment, dependencies, start (CONTEXT 6.4)."""
+from datetime import timedelta
 
-This module provides pure functions to:
-1. Route complaints to the appropriate city department based on keyword matching.
-2. Calculate priority scores and bands using urgency indicators, repeated complaint markers,
-   and open duration.
+from sqlalchemy.orm import Session
 
-No database, network calls, or mutable global state are used.
-"""
-
-from typing import Any
-import re
-
-# Comprehensive keyword dictionary per department with at least 12 keywords each,
-# including common Indian-English complaint terms and phrases.
-DEPARTMENT_KEYWORDS: dict[str, list[str]] = {
-    "Water Supply": [
-        "no water supply",
-        "water supply",
-        "water leakage",
-        "pipe burst",
-        "water contamination",
-        "dirty water",
-        "low water pressure",
-        "water tanker",
-        "broken pipe",
-        "water shortage",
-        "drinking water",
-        "water pipeline",
-        "borewell",
-        "tap water",
-        "water cut",
-    ],
-    "Roads & Public Works": [
-        "pothole",
-        "broken road",
-        "damaged road",
-        "pavement",
-        "footpath",
-        "road repair",
-        "crater",
-        "speed breaker",
-        "traffic signal",
-        "flyover",
-        "divider",
-        "manhole cover",
-        "road cave in",
-        "asphalt",
-        "zebra crossing",
-    ],
-    "Electricity": [
-        "streetlight",
-        "street light",
-        "power cut",
-        "load shedding",
-        "electricity outage",
-        "live wire",
-        "hanging wire",
-        "transformer",
-        "sparking",
-        "fluctuating voltage",
-        "meter fault",
-        "electric pole",
-        "power outage",
-        "short circuit",
-        "blown fuse",
-    ],
-    "Sanitation & Waste": [
-        "garbage not collected",
-        "garbage dump",
-        "open drain",
-        "drainage",
-        "clogged drain",
-        "sewage overflow",
-        "waste disposal",
-        "trash pile",
-        "littering",
-        "dustbin overflowing",
-        "cleaning required",
-        "blocked sewer",
-        "debris",
-        "stench",
-        "filth",
-    ],
-    "Public Safety": [
-        "stray dogs",
-        "stray dog",
-        "dog bite",
-        "illegal parking",
-        "encroachment",
-        "open manhole",
-        "fallen tree",
-        "hazardous",
-        "vandalism",
-        "noise pollution",
-        "loudspeaker",
-        "rash driving",
-        "unauthorized construction",
-        "unsafe building",
-        "public nuisance",
-    ],
-    "Health": [
-        "mosquito",
-        "mosquitoes",
-        "dengue",
-        "malaria",
-        "fogging",
-        "vector borne",
-        "food poisoning",
-        "unhygienic food",
-        "epidemic",
-        "pest infestation",
-        "stagnant water",
-        "dispensary",
-        "waterborne disease",
-        "dead animal",
-        "carcass",
-    ],
-    "General": [
-        "general inquiry",
-        "general issue",
-        "other issue",
-        "miscellaneous",
-        "unspecified",
-        "not listed",
-        "portal feedback",
-        "general grievance",
-        "general assistance",
-        "website query",
-        "general support",
-        "general complaint",
-    ],
-}
-
-# Urgent word patterns and labels (adds 30 points per unique matched urgent condition)
-URGENT_PATTERNS: tuple[tuple[str, str], ...] = (
-    ("accident", r"\baccidents?\b"),
-    ("live wire", r"\blive wires?\b"),
-    ("sewage overflow", r"\bsewage overflow\b"),
-    ("fire", r"\bfires?\b"),
-    ("flooding", r"\bflood(ing)?\b"),
-    ("injury", r"\binjur(y|ies)\b"),
-    ("child", r"\bchild(ren)?\b"),
-    ("emergency", r"\bemergenc(y|ies)\b"),
-    ("electrocution", r"\belectrocution\b"),
-    ("gas leak", r"\bgas leaks?\b"),
-    ("explosion", r"\bexplosions?\b"),
-    ("collapse", r"\bcollapse(d)?\b"),
-    ("casualty", r"\bcasualt(y|ies)\b"),
-    ("hazard", r"\bhazards?\b"),
+from app import clock, config
+from app.geo import haversine_m
+from app.models import (
+    TASK_BLOCKED, TASK_CLOSED, TASK_IN_PROGRESS, TASK_OPEN, Department, Incident, Task, VulnerableZone,
 )
+from app.services.errors import InvalidTransition, NotFound
+from app.services.events import log_event
 
-# Repeated complaint patterns and labels (adds 15 points per unique matched repeated indicator)
-REPEATED_PATTERNS: tuple[tuple[str, str], ...] = (
-    ("third time", r"\bthird time\b"),
-    ("second time", r"\bsecond time\b"),
-    ("multiple times", r"\bmultiple times\b"),
-    ("again", r"\bagain\b"),
-    ("still", r"\bstill\b"),
-    ("repeatedly", r"\brepeatedly\b"),
-    ("not resolved", r"\bnot resolved\b"),
-    ("unresolved", r"\bunresolved\b"),
-    ("no action taken", r"\bno action taken\b"),
-    ("reminder", r"\breminders?\b"),
-)
+ACTIVE = (TASK_BLOCKED, TASK_OPEN, TASK_IN_PROGRESS)
 
 
-def route_department(text: str) -> dict[str, Any]:
-    """Route a citizen complaint description to the appropriate department.
+def in_vulnerable_zone(db: Session, lat: float, lng: float) -> bool:
+    """True if the point lies within any vulnerable zone's radius."""
+    return any(haversine_m(lat, lng, z.lat, z.lng) <= z.radius_m for z in db.query(VulnerableZone))
 
-    Matches text against department keywords in a case-insensitive manner.
-    Confidence is calculated as the number of matched keywords of the winning
-    department divided by total keyword matches across all departments (capped at 1.0).
-    If no keywords match, returns 'General' with a confidence of 0.0.
 
-    Args:
-        text: The complaint description string.
+def compute_priority(severity: int, report_count: int, in_zone: bool) -> str:
+    """score = severity*2 + min(report_count, cap) + zone bonus -> CRITICAL/HIGH/MEDIUM/LOW."""
+    score = severity * 2 + min(report_count, config.REPORT_COUNT_CAP)
+    score += config.VULNERABLE_ZONE_BONUS if in_zone else 0
+    for name, threshold in config.PRIORITY_THRESHOLDS:
+        if score >= threshold:
+            return name
+    return "LOW"
 
-    Returns:
-        dict with:
-            - department (str): Winning department name or 'General'.
-            - confidence (float): Score between 0.0 and 1.0.
-            - matched_keywords (list[str]): List of keywords matched for the winning department.
+
+def sla_hours(category: str, priority: str) -> float:
+    """Base SLA window = category base hours x priority multiplier."""
+    return config.BASE_SLA_HOURS[category] * config.PRIORITY_MULTIPLIER[priority]
+
+
+def create_primary_task(db: Session, incident: Incident) -> Task:
+    """New incident -> OPEN task for the owning department with priority-based SLA. Logs TASK_CREATED."""
+    dept = db.query(Department).filter_by(code=config.CATEGORY_TO_DEPT[incident.category]).one()
+    hours = sla_hours(incident.category, incident.priority)
+    t = clock.now()
+    task = Task(
+        incident_id=incident.id, department_id=dept.id, status=TASK_OPEN, priority=incident.priority,
+        base_sla_hours=hours, sla_window_hours=hours, sla_deadline=t + timedelta(hours=hours), created_at=t,
+    )
+    db.add(task)
+    db.flush()
+    db.refresh(incident)
+    log_event(
+        db, "TASK_CREATED",
+        f"Task #{task.id} assigned to {dept.name}: {incident.priority} priority, SLA {hours:g}h "
+        f"(deadline {task.sla_deadline:%Y-%m-%d %H:%M})",
+        incident_id=incident.id, task_id=task.id,
+        payload={"department": dept.code, "priority": incident.priority, "sla_hours": hours},
+    )
+    return task
+
+
+def primary_task(incident: Incident) -> Task | None:
+    """The incident's (single, in the MVP) task."""
+    return incident.tasks[0] if incident.tasks else None
+
+
+def recompute_priority(db: Session, incident: Incident) -> bool:
+    """After a merge: recompute incident priority; if it rose, log PRIORITY_RAISED and shorten SLAs.
+
+    Deadline may only get shorter: min(old, created_at + new_sla). Tasks that already breached or
+    were reopened keep their re-armed deadline (only priority/base hours update).
     """
-    if not text or not text.strip():
-        return {
-            "department": "General",
-            "confidence": 0.0,
-            "matched_keywords": [],
-        }
-
-    text_lower = text.lower()
-    matches_by_dept: dict[str, list[str]] = {}
-
-    for dept, keywords in DEPARTMENT_KEYWORDS.items():
-        matched: list[str] = [kw for kw in keywords if kw.lower() in text_lower]
-        matches_by_dept[dept] = matched
-
-    total_matches = sum(len(kws) for kws in matches_by_dept.values())
-    if total_matches == 0:
-        return {
-            "department": "General",
-            "confidence": 0.0,
-            "matched_keywords": [],
-        }
-
-    # Evaluate non-General departments first
-    non_general_depts = [d for d in DEPARTMENT_KEYWORDS if d != "General"]
-    best_dept = max(non_general_depts, key=lambda d: len(matches_by_dept[d]))
-
-    # Fall back to General if only General keywords matched
-    if len(matches_by_dept[best_dept]) == 0 and len(matches_by_dept["General"]) > 0:
-        best_dept = "General"
-
-    winning_matches = matches_by_dept[best_dept]
-    if not winning_matches:
-        return {
-            "department": "General",
-            "confidence": 0.0,
-            "matched_keywords": [],
-        }
-
-    confidence = min(1.0, len(winning_matches) / total_matches)
-
-    return {
-        "department": best_dept,
-        "confidence": float(confidence),
-        "matched_keywords": winning_matches,
-    }
+    new = compute_priority(incident.severity_max, incident.report_count, incident.in_vulnerable_zone)
+    old = incident.priority
+    if config.PRIORITY_ORDER.index(new) <= config.PRIORITY_ORDER.index(old):
+        return False
+    incident.priority = new
+    changed = []
+    for task in incident.tasks:
+        if task.status not in ACTIVE:
+            continue
+        task.priority = new
+        task.base_sla_hours = sla_hours(incident.category, new)
+        if task.breach_count == 0 and task.reopen_count == 0:
+            task.sla_deadline = min(task.sla_deadline, task.created_at + timedelta(hours=task.base_sla_hours))
+            task.sla_window_hours = task.base_sla_hours
+        changed.append({"task_id": task.id, "sla_deadline": task.sla_deadline.isoformat()})
+    log_event(
+        db, "PRIORITY_RAISED",
+        f"Priority raised {old} -> {new} ({incident.report_count} reports, severity {incident.severity_max}); "
+        f"SLA deadline tightened",
+        incident_id=incident.id, payload={"from": old, "to": new, "tasks": changed},
+    )
+    return True
 
 
-def score_priority(text: str, days_open: int = 0) -> dict[str, Any]:
-    """Score complaint urgency and map to a priority band with explanatory reasons.
+def apply_dependency(db: Session, upstream: Task, downstream: Task, reason: str) -> bool:
+    """Block `downstream` behind `upstream` (clock paused, upstream becomes lead). Returns True if applied.
 
-    Scoring rules:
-    - Urgent words (e.g. accident, live wire, sewage overflow, fire, flooding, injury, child)
-      add 30 points each.
-    - Repeated words (e.g. again, still, third time) add 15 points each.
-    - Each day open adds 3 points, up to a cap of 30 points.
-    - Score is clamped between 0 and 100.
-    - Priority bands: >=70 CRITICAL, >=45 HIGH, >=20 MEDIUM, else LOW.
-    - 'reasons' is always populated with human-readable explanatory strings.
-
-    Args:
-        text: The citizen complaint text.
-        days_open: Number of days the complaint has remained unresolved (default: 0).
-
-    Returns:
-        dict with:
-            - priority (str): 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'.
-            - score (int): Priority score between 0 and 100.
-            - reasons (list[str]): Human-readable explanations for the score.
+    Skipped if downstream is not OPEN, already depends on something, upstream is already CLOSED,
+    or the link would create a cycle.
     """
-    score = 0
-    reasons: list[str] = []
-    text_lower = text.lower() if text else ""
+    if downstream.status != TASK_OPEN or downstream.depends_on_task_id is not None:
+        return False
+    if upstream.status == TASK_CLOSED or upstream.id == downstream.id:
+        return False
+    node: Task | None = upstream
+    while node is not None:  # cycle check: walk upstream's dependency chain
+        if node.id == downstream.id:
+            return False
+        node = db.get(Task, node.depends_on_task_id) if node.depends_on_task_id else None
+    downstream.depends_on_task_id = upstream.id
+    downstream.status = TASK_BLOCKED
+    downstream.paused_at = clock.now()
+    upstream.is_lead = True
+    log_event(
+        db, "TASK_BLOCKED",
+        f"Task #{downstream.id} ({downstream.department.name}) blocked until task #{upstream.id} "
+        f"({upstream.department.name}) closes: {reason}. SLA clock paused.",
+        incident_id=downstream.incident_id, task_id=downstream.id,
+        payload={"depends_on_task_id": upstream.id},
+    )
+    return True
 
-    # Check urgent keyword patterns
-    for label, pattern in URGENT_PATTERNS:
-        if re.search(pattern, text_lower):
-            score += 30
-            reasons.append(f"Urgent condition detected: '{label}' (+30 pts)")
 
-    # Check repeated complaint patterns
-    for label, pattern in REPEATED_PATTERNS:
-        if re.search(pattern, text_lower):
-            score += 15
-            reasons.append(f"Repeated complaint indicator: '{label}' (+15 pts)")
-
-    # Add points for duration open (3 points per day, capped at 30)
-    effective_days = max(0, days_open)
-    if effective_days > 0:
-        days_points = min(30, effective_days * 3)
-        score += days_points
-        reasons.append(f"Complaint open for {effective_days} day(s) (+{days_points} pts)")
-
-    # Clamp score to 0-100 range
-    final_score = max(0, min(100, score))
-
-    # Determine priority band
-    if final_score >= 70:
-        priority = "CRITICAL"
-    elif final_score >= 45:
-        priority = "HIGH"
-    elif final_score >= 20:
-        priority = "MEDIUM"
-    else:
-        priority = "LOW"
-
-    # Ensure reasons is always populated
-    if not reasons:
-        reasons.append("Standard priority complaint with no urgent or repeated factors detected")
-
-    return {
-        "priority": priority,
-        "score": final_score,
-        "reasons": reasons,
-    }
+def start_task(db: Session, task_id: int) -> Task:
+    """OPEN -> IN_PROGRESS. 404 if unknown; 409 if BLOCKED or not OPEN. Logs TASK_STARTED."""
+    task = db.get(Task, task_id)
+    if task is None:
+        raise NotFound(f"task {task_id} not found")
+    if task.status == TASK_BLOCKED:
+        raise InvalidTransition(
+            f"task {task_id} is BLOCKED waiting for task {task.depends_on_task_id}; it cannot be started yet")
+    if task.status != TASK_OPEN:
+        raise InvalidTransition(f"task {task_id} is {task.status}; only OPEN tasks can be started")
+    task.status = TASK_IN_PROGRESS
+    log_event(
+        db, "TASK_STARTED", f"{task.department.name} started work on task #{task.id}",
+        incident_id=task.incident_id, task_id=task.id, actor=f"dept:{task.department.code}",
+    )
+    return task
