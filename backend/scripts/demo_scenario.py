@@ -130,7 +130,7 @@ def main() -> int:
             api.post("/admin/seed")
         except SystemExit as e:
             print(f"  (seed skipped: {e})")
-    evs = api.get("/events", limit=1)
+    evs = api.get("/events", limit=1000)  # limit returns the first N by id, so fetch all and take the last
     last_event_id = evs[-1]["id"] if evs else 0
     base_stats = api.get("/admin/stats")["totals"]
     print(f"  City baseline: {base_stats['incidents']} incidents, {base_stats['open_tasks']} open tasks")
