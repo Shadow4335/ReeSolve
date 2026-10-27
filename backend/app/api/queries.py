@@ -71,10 +71,8 @@ def list_events(incident_id: int | None = None, task_id: int | None = None, limi
     if task_id is not None:
         q = q.filter(Event.task_id == task_id)
     if since_id is not None:
-        q = q.filter(Event.id > since_id)
-        if limit:
-            q = q.limit(limit)
-        return q.order_by(Event.id).all()
+        q = q.filter(Event.id > since_id).order_by(Event.id)
+        return (q.limit(limit) if limit else q).all()
     if limit:  # latest N, returned oldest-first
         return list(reversed(q.order_by(Event.id.desc()).limit(limit).all()))
     return q.order_by(Event.id).all()

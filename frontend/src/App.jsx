@@ -25,7 +25,7 @@ function ClockBadge() {
 export default function App() {
   const [role, setRole] = useState('citizen') // citizen | dept:<CODE> | admin
   const [page, setPage] = useState('report')
-  const [trackId, setTrackId] = useState(null)
+  const [track, setTrack] = useState({ incidentId: null, reportId: null })
 
   const changeRole = (r) => {
     setRole(r)
@@ -57,8 +57,8 @@ export default function App() {
         <div className="ml-auto"><ClockBadge /></div>
       </header>
       <main className="p-6">
-        {page === 'report' && <Report onSubmitted={(id) => { setTrackId(id); setPage('track') }} />}
-        {page === 'track' && <Track incidentId={trackId} />}
+        {page === 'report' && <Report onSubmitted={(incidentId, reportId) => { setTrack({ incidentId, reportId }); setPage('track') }} />}
+        {page === 'track' && <Track incidentId={track.incidentId} reportId={track.reportId} onSelect={(id) => setTrack({ incidentId: id, reportId: null })} />}
         {page === 'department' && <Department code={role.replace('dept:', '')} />}
         {page === 'admin' && <Admin />}
       </main>

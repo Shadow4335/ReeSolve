@@ -64,6 +64,7 @@ def test_events_feed_params(client):
     ids = [e["id"] for e in allev]
     assert ids == sorted(ids) and len(ids) == 6
     assert [e["id"] for e in client.get(f"/api/events?since_id={ids[2]}").json()] == ids[3:]
+    assert [e["id"] for e in client.get(f"/api/events?since_id={ids[0]}&limit=2").json()] == ids[1:3]
     assert [e["id"] for e in client.get("/api/events?limit=2").json()] == ids[-2:]
     assert all(e["incident_id"] == 2 for e in client.get("/api/events?incident_id=2").json())
     assert all(e["task_id"] == 1 or e["type"] == "TASK_CREATED" for e in client.get("/api/events?task_id=1").json())
