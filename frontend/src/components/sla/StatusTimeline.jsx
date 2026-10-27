@@ -2,50 +2,135 @@ import React, { useMemo } from 'react';
 import './sla.css';
 
 /**
- * Event type configurations including display label, emoji icon, and color theme identifier.
+ * Event type configurations keyed by backend EVENT_TYPES strings.
+ * Each type gets a distinct emoji icon, human label, and CSS theme class.
+ *
+ * Source of truth: backend/app/models.py EVENT_TYPES list.
  */
 export const EVENT_CONFIG = {
-  CREATED: {
-    label: 'Complaint Created',
+  // Intake
+  REPORT_RECEIVED: {
+    label: 'Report Received',
+    icon: '📨',
+    theme: 'created',
+  },
+  INCIDENT_CREATED: {
+    label: 'Incident Created',
     icon: '📝',
     theme: 'created',
   },
-  ASSIGNED: {
-    label: 'Assigned to Dept',
-    icon: '👤',
-    theme: 'assigned',
-  },
-  DUPLICATE_LINKED: {
-    label: 'Duplicate Linked',
+  // Dedup / clustering
+  DUPLICATE_MERGED: {
+    label: 'Duplicate Merged',
     icon: '🔗',
     theme: 'duplicate',
   },
-  RESOLVED_CLAIMED: {
-    label: 'Resolution Claimed',
-    icon: '✅',
-    theme: 'resolved-claimed',
+  RELATED_LINKED: {
+    label: 'Related Incident Linked',
+    icon: '🔀',
+    theme: 'duplicate',
   },
-  EVIDENCE_CONTRADICTS: {
-    label: 'Evidence Contradicts',
+  // Task lifecycle
+  TASK_CREATED: {
+    label: 'Task Created',
+    icon: '📋',
+    theme: 'assigned',
+  },
+  TASK_BLOCKED: {
+    label: 'Task Blocked',
+    icon: '🚧',
+    theme: 'contradicts',
+  },
+  TASK_UNBLOCKED: {
+    label: 'Task Unblocked',
+    icon: '🔓',
+    theme: 'assigned',
+  },
+  PRIORITY_RAISED: {
+    label: 'Priority Raised',
+    icon: '⬆️',
+    theme: 'contradicts',
+  },
+  TASK_STARTED: {
+    label: 'Work Started',
+    icon: '👷',
+    theme: 'assigned',
+  },
+  // SLA
+  SLA_WARNING: {
+    label: 'SLA Warning',
     icon: '⚠️',
     theme: 'contradicts',
   },
-  REOPENED: {
-    label: 'Case Reopened',
-    icon: '🔄',
-    theme: 'reopened',
+  SLA_BREACHED: {
+    label: 'SLA Breached',
+    icon: '🚨',
+    theme: 'escalated',
   },
   ESCALATED: {
     label: 'Escalated',
-    icon: '🚨',
+    icon: '📣',
     theme: 'escalated',
+  },
+  // Resolution / verification
+  CLOSURE_SUBMITTED: {
+    label: 'Closure Claimed',
+    icon: '✅',
+    theme: 'resolved-claimed',
+  },
+  CLOSURE_REJECTED: {
+    label: 'Closure Rejected',
+    icon: '❌',
+    theme: 'contradicts',
+  },
+  VERIFICATION_REQUESTED: {
+    label: 'Verification Requested',
+    icon: '🔍',
+    theme: 'assigned',
+  },
+  CITIZEN_CONFIRMED: {
+    label: 'Citizen Confirmed Fix',
+    icon: '👍',
+    theme: 'resolved-claimed',
+  },
+  CITIZEN_REJECTED: {
+    label: 'Citizen Rejected Fix',
+    icon: '👎',
+    theme: 'contradicts',
+  },
+  CONTRADICTION_DETECTED: {
+    label: 'Evidence Contradicts Closure',
+    icon: '🧾',
+    theme: 'contradicts',
+  },
+  TASK_REOPENED: {
+    label: 'Task Reopened',
+    icon: '🔄',
+    theme: 'reopened',
+  },
+  TASK_CLOSED: {
+    label: 'Task Closed',
+    icon: '🏁',
+    theme: 'resolved-claimed',
+  },
+  INCIDENT_RESOLVED: {
+    label: 'Incident Resolved',
+    icon: '🎉',
+    theme: 'resolved-claimed',
+  },
+  // Admin
+  CLOCK_ADVANCED: {
+    label: 'Clock Advanced (Demo)',
+    icon: '⏩',
+    theme: 'default',
   },
 };
 
 /**
  * Formats a timestamp into a relative human-readable string (e.g. "3h ago").
+ * Accepts either an ISO string or the backend's `ts` field name.
  *
- * @param {string | number | Date} timestamp - The event timestamp.
+ * @param {string | number | Date} timestamp - The event timestamp (`ts` field from EventOut).
  * @param {string | number | Date} [now=new Date()] - Reference timestamp.
  * @returns {string} Relative time string.
  */
@@ -90,17 +175,22 @@ export function formatRelativeTime(timestamp, now = new Date()) {
 }
 
 /**
- * StatusTimeline component displays a vertical audit trail of complaint events,
+ * StatusTimeline component displays a vertical audit trail of complaint lifecycle events,
  * sorted with the newest event at the top.
+ *
+ * Consumes the `EventOut` shape returned by `GET /api/events?incident_id=`:
+ *   { id, ts, type, actor, reason, payload }
  *
  * @param {object} props - Component props.
  * @param {Array<{
- *   type: "CREATED" | "ASSIGNED" | "DUPLICATE_LINKED" | "RESOLVED_CLAIMED" | "EVIDENCE_CONTRADICTS" | "REOPENED" | "ESCALATED",
- *   timestamp: string | number | Date,
- *   actor?: string,
- *   note?: string
- * }>} props.events - List of lifecycle events.
- * @param {string | number | Date} [props.now] - Optional reference time for relative calculation.
+ *   id: number,
+ *   ts: string,
+ *   type: string,
+ *   actor: string,
+ *   reason: string,
+ *   payload: object
+ * }>} props.events - Raw EventOut objects from the API.
+ * @param {string | number | Date} [props.now] - Optional reference time for relative calculation (useful with the simulated clock).
  * @param {string} [props.className] - Optional custom CSS class.
  * @returns {JSX.Element} The rendered vertical timeline.
  */
@@ -110,12 +200,12 @@ export default function StatusTimeline({
   className = '',
   ...rest
 }) {
-  // Sort events descending (newest at the top)
+  // Sort events descending by `ts` (backend field name), newest at top.
   const sortedEvents = useMemo(() => {
     if (!Array.isArray(events)) return [];
     return [...events].sort((a, b) => {
-      const timeA = new Date(a?.timestamp || 0).getTime();
-      const timeB = new Date(b?.timestamp || 0).getTime();
+      const timeA = new Date(a?.ts || 0).getTime();
+      const timeB = new Date(b?.ts || 0).getTime();
       return timeB - timeA;
     });
   }, [events]);
@@ -144,17 +234,26 @@ export default function StatusTimeline({
             theme: 'default',
           };
 
-          const eventDate = new Date(event.timestamp);
-          const exactTimeStr = !Number.isNaN(eventDate.getTime())
+          // Use backend field `ts` (not `timestamp`)
+          const eventDate = new Date(event.ts);
+          const isValidDate = !Number.isNaN(eventDate.getTime());
+          const exactTimeStr = isValidDate
             ? `${eventDate.toLocaleString()} (${eventDate.toISOString()})`
             : 'Unknown date';
 
-          const relativeTimeStr = formatRelativeTime(event.timestamp, now);
+          const relativeTimeStr = formatRelativeTime(event.ts, now);
           const isLatest = index === 0;
+
+          // Show `reason` as the note text (backend field), fall back to payload summary
+          const noteText =
+            event.reason ||
+            (event.payload && Object.keys(event.payload).length > 0
+              ? JSON.stringify(event.payload)
+              : null);
 
           return (
             <article
-              key={`${event.type}-${event.timestamp}-${index}`}
+              key={event.id ?? `${event.type}-${event.ts}-${index}`}
               className={`sla-timeline-item sla-timeline-item-${config.theme} ${isLatest ? 'is-latest' : ''}`}
               aria-labelledby={`timeline-title-${index}`}
             >
@@ -188,7 +287,7 @@ export default function StatusTimeline({
                   </div>
                   <time
                     className="sla-timeline-timestamp"
-                    dateTime={eventDate.toISOString?.() || ''}
+                    dateTime={isValidDate ? eventDate.toISOString() : ''}
                     title={exactTimeStr}
                   >
                     {relativeTimeStr}
@@ -202,10 +301,8 @@ export default function StatusTimeline({
                   </div>
                 )}
 
-                {event.note && (
-                  <p className="sla-timeline-note">
-                    {event.note}
-                  </p>
+                {noteText && (
+                  <p className="sla-timeline-note">{noteText}</p>
                 )}
               </div>
             </article>
