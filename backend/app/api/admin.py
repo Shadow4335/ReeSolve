@@ -64,9 +64,9 @@ def reset(db: Session = Depends(get_db)) -> dict[str, Any]:
 def seed_baseline(db: Session = Depends(get_db)) -> dict[str, Any]:
     """Load baseline data via the seed script (imported lazily so the app boots without it)."""
     try:
-        from scripts.seed import seed
+        from scripts.seed_demo import seed  # demo-tuned baseline; teammate's scripts/seed.py stays available
     except ImportError:
-        raise HTTPException(status_code=501, detail="seed script (scripts/seed.py) is not installed")
+        raise HTTPException(status_code=501, detail="seed script (scripts/seed_demo.py) is not installed")
     seed(db)
     db.commit()
     return {"seeded": True}

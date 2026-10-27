@@ -63,13 +63,13 @@ def test_reset_wipes_data_but_keeps_reference_data(client, db):
 
 
 def test_seed_endpoint_missing_script_501(client, monkeypatch):
-    monkeypatch.setitem(sys.modules, "scripts.seed", None)
+    monkeypatch.setitem(sys.modules, "scripts.seed_demo", None)
     assert client.post("/api/admin/seed").status_code == 501
 
 
 def test_seed_endpoint_calls_seed(client, monkeypatch):
     calls = []
-    fake = types.ModuleType("scripts.seed")
+    fake = types.ModuleType("scripts.seed_demo")
     fake.seed = lambda db: calls.append(db)
-    monkeypatch.setitem(sys.modules, "scripts.seed", fake)
+    monkeypatch.setitem(sys.modules, "scripts.seed_demo", fake)
     assert client.post("/api/admin/seed").json() == {"seeded": True} and len(calls) == 1
