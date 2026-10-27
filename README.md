@@ -2,37 +2,93 @@
 
 **A complaint isn't resolved when a department says so. It's resolved when the evidence agrees.**
 
-ReeSolve is a closed-loop civic complaint platform, built as a hackathon prototype for *Smart Cities: From Citizen
-Reports to Verified Resolution*. It takes citizen reports, merges duplicates, links related problems across departments,
-tracks service-level deadlines, and **reopens or escalates a case automatically** when a department misses a deadline or
-when the evidence contradicts a closure.
+A closed-loop civic complaint platform, built as a hackathon prototype for *Smart Cities: From Citizen Reports to
+Verified Resolution*. It merges duplicate reports, links related problems across departments, tracks service-level
+deadlines, and **reopens or escalates a case automatically** when a department misses a deadline or the evidence
+contradicts a closure.
 
 > **Prototype.** Built for a hackathon. It is not an official Government of India website and uses no state emblem.
-> SQLite, simulated citizen verification, no real SMS or email, and a demo-only sign-in (no real authentication).
+> It runs on SQLite with simulated citizen verification, no real SMS or email, and a demo-only sign-in.
 
-## What it does
+![Live operations view: map of open and fixed incidents in Central New Delhi, live audit feed, department performance](docs/screenshots/09-admin-map-and-feed.jpg)
+
+## 1. What problem does it solve, and for whom?
+
+**The problem.** In most complaint systems a ticket is "closed" the moment a department says it is. Nobody checks.
+Meanwhile the same pothole is reported five times as five tickets, the water leak and the road damage it caused sit
+with different departments that never talk, and deadlines are missed without anyone noticing.
+
+**Who it is for.**
+
+| Who | What ReeSolve gives them |
+|---|---|
+| **Residents** | Report in a minute; see plain-language progress; get asked *"Was this fixed?"* before a case closes |
+| **Department staff** | One queue sorted by SLA urgency, clear "waiting for another team" banners, a closure form that demands proof |
+| **City administrators** | A live map and audit feed, SLA and reopen rates by department, and automatic escalation instead of chasing |
+
+## 2. What it does
 
 - **Intake:** free text plus a map pin becomes a category, severity and summary (keyword rules, fully offline).
-- **Explainable duplicate detection:** the same problem reported five times becomes one incident. Every merge stores its
-  distance, text similarity, score and rule.
+- **Explainable duplicate detection:** five reports of one pothole become one incident. Every merge stores its
+  distance, text similarity, score and rule, and the UI shows them.
 - **Cross-department dependencies:** a water leak next to a pothole creates a cluster. The Roads task is *blocked*
   behind the Water task, its SLA clock is paused, and a coordination note says who does what first.
 - **SLA tracking:** a deadline per task (category x priority), a warning at 80%, breach detection, and automatic
   escalation up a ladder (Field Team, Supervisor, Department Head, Commissioner).
 - **Verified closure (the point of the product):** a department's "done" never closes a task. It goes to *pending
-  verification* and the original reporters are asked. Confirmed means `CLOSED / VERIFIED`; "not fixed" reopens it;
-  no answer in 48 h closes it as `LOW_CONFIDENCE`; a **new report after closure** contradicts it and reopens it; two
-  reopens force an escalation to Department Head. Closures without a photo or at the wrong place are rejected
+  verification* and the original reporters are asked. Confirmed means `CLOSED / VERIFIED`; "not fixed" reopens it; no
+  answer in 48 h closes it as `LOW_CONFIDENCE`; a **new report after closure** contradicts it and reopens it; two
+  reopens force an escalation to Department Head. A closure without a photo or at the wrong place is rejected
   automatically.
-- **Audit trail:** every state change writes an event with a human-readable reason; the UI shows them.
+- **Audit trail:** every state change writes an event with a human-readable reason.
 - **Simulated clock:** fast-forward time live to show SLA behaviour in seconds.
+- **Accessibility and language:** English and Hindi, text size controls, skip link, keyboard-friendly, AA contrast.
 
-## Run it
+## 3. Screenshots
 
-Requirements: Python 3.11+ (tested on 3.14), Node 18+ (tested on 20).
+All taken from the running app with the seeded New Delhi demo data.
+
+| | |
+|---|---|
+| ![Login](docs/screenshots/01-login.jpg) **Demo sign-in** with role tabs and one-click demo accounts | ![Overview](docs/screenshots/02-overview.jpg) **Resident overview** |
+| ![Map](docs/screenshots/03-map-and-footer.jpg) **Reports near you** on a real New Delhi map, and the prototype disclaimer | ![Report](docs/screenshots/04-report-form.jpg) **Report a problem** (category, location, photo, description) |
+| ![Dedup](docs/screenshots/05-report-dedup.jpg) **Explainable duplicate merge:** distance, similarity, score | ![Verification](docs/screenshots/06-verification-gate.jpg) **The verification gate:** "The team says this is fixed. Is it?" |
+| ![Department](docs/screenshots/07-department-queue.jpg) **Department queue:** blocked task, paused SLA, reopened task | ![Admin](docs/screenshots/08-admin-controls.jpg) **Admin controls:** simulated clock, status key, stats |
+
+A recorded video walkthrough is not included. The same storyline is reproducible two ways: the human talk track in
+[`docs/demo-script.md`](docs/demo-script.md), and `python scripts/demo_scenario.py`, which runs all seven steps against
+the live API and asserts every outcome.
+
+## 4. Architecture
+
+![ReeSolve architecture: React frontend, FastAPI routers, service layer, SQLite, scheduler](docs/architecture.png)
+
+- **Report is not Incident is not Task.** A *report* is what a citizen submitted; an *incident* is the deduplicated
+  real-world problem; a *task* is a unit of work for one department. The task is the unit of state; the incident's
+  status is derived from its tasks.
+- **Thin routers, one service layer.** Every state change goes through a service function that also writes its audit
+  event in the same transaction. Routers only validate, call a service, and commit once.
+- **One clock.** `app.clock.now()` is the only source of time, which is what makes the live demo possible.
+- **Configuration in one file.** All thresholds, SLA tables, department maps and related-category rules live in
+  `backend/app/config.py`.
+
+```
+Task:  BLOCKED -> OPEN -> IN_PROGRESS -> PENDING_VERIFICATION -> CLOSED (VERIFIED | LOW_CONFIDENCE)
+       reopen: PENDING_VERIFICATION / CLOSED -> OPEN (shorter SLA; the 2nd reopen forces escalation)
+       breach: escalate one level (0 Field Team .. 3 Commissioner) and re-arm the SLA
+```
+
+Main endpoints (under `/api`): `POST /reports`, `GET /incidents`, `GET /incidents/{id}`, `GET /clusters/{id}`,
+`GET /tasks`, `GET /events`, `POST /tasks/{id}/start`, `POST /tasks/{id}/close`, `POST /tasks/{id}/verify-response`,
+`GET /admin/stats`, `GET|POST /admin/clock...`, `POST /admin/tick`, `POST /admin/reset`, `POST /admin/seed`.
+Interactive docs at `http://localhost:8000/docs` while the backend runs.
+
+## 5. Run it locally
+
+Requirements: Python 3.11+ (tested on 3.14) and Node 18+ (tested on 20).
 
 ```bash
-# 1. backend  ->  http://localhost:8000  (API docs at /docs)
+# 1. backend  ->  http://localhost:8000
 cd backend
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
@@ -40,7 +96,7 @@ uvicorn app.main:app --port 8000
 ```
 
 ```bash
-# 2. frontend  ->  http://localhost:5173   (in a second terminal)
+# 2. frontend  ->  http://localhost:5173   (second terminal)
 cd frontend
 npm install
 npm run dev
@@ -48,89 +104,94 @@ npm run dev
 
 Start the backend **from the `backend/` folder**: the SQLite file `reesolve.db` is created there and is gitignored.
 
-**Load the demo data** (12 incidents at real New Delhi localities): sign in as admin and click *Load seed data*, or
+**Configuration.** Nothing is required. Optional overrides go in a root `.env` (copy `.env.example`; it holds
+placeholders only and a real `.env` is gitignored): `VITE_API_URL` points the UI at another backend, and
+`VITE_REQUIRE_LOGIN=false` skips the login page. No secrets or API keys are used.
 
-```bash
-curl -X POST localhost:8000/api/admin/seed
-```
+**Sign in (demo only).** The login is frontend-only and sends nothing anywhere. Use a one-click chip
+(*Try as resident / Roads dept / admin*) or type a name; the admin demo code is **`civic-demo`** (a public demo
+constant, not a secret). The three demo chips also get a **Demo time** control to fast-forward the simulated clock.
 
-**Start over:** Admin page, *Reset demo* then *Load seed data*, or `POST /api/admin/reset`, or delete `backend/reesolve.db`.
-
-### Signing in (demo only)
-
-The login page is a frontend-only demo: it picks a role and nothing is sent anywhere. Use a one-click chip
-(*Try as resident / Roads dept / admin*), or type a name. The admin demo code is **`civic-demo`**.
-
-- The three demo chips also get a **Demo time** control (fast-forward the simulated clock). Typed sign-ins do not.
-- `VITE_REQUIRE_LOGIN=false` skips the login page entirely. `VITE_API_URL` points the UI at another backend.
-  See `frontend/.env.example`.
-
-### The scripted demo
-
-```bash
-cd backend && source .venv/bin/activate
-python scripts/demo_scenario.py                 # resets, seeds, then runs the 7-step storyline against the API
-python scripts/demo_scenario.py --pause 4       # waits 4 s between steps, for live narration
-python scripts/demo_scenario.py --no-reset      # replay on the current data
-```
-
-It asserts every outcome and exits non-zero on a failed check. The human talk track, with what to click, say and expect
-at each step, is in [`docs/demo-script.md`](docs/demo-script.md).
-
-### Tests
+**Tests and build.**
 
 ```bash
 cd backend && pytest -q        # 105 tests: state machine, dedup, SLA, verification, API, seed
 cd frontend && npm run build   # production build
 ```
 
-## How it is built
+**Run the scripted demo.**
 
-**Report is not Incident is not Task.** A *report* is what a citizen submitted; an *incident* is the deduplicated
-real-world problem; a *task* is a unit of work for one department. The task is the unit of state; the incident's
-status is derived from its tasks.
-
-```
-Task:  BLOCKED -> OPEN -> IN_PROGRESS -> PENDING_VERIFICATION -> CLOSED (VERIFIED | LOW_CONFIDENCE)
-       reopen: PENDING_VERIFICATION / CLOSED -> OPEN (shorter SLA; 2nd reopen forces escalation)
-       breach: escalate one level (0 Field Team .. 3 Commissioner) and re-arm the SLA
+```bash
+cd backend && source .venv/bin/activate
+python scripts/demo_scenario.py             # resets, seeds, then runs the 7-step storyline (asserts every outcome)
+python scripts/demo_scenario.py --pause 4   # waits 4 s between steps, for live narration
 ```
 
-Rules the code holds to: one simulated clock (`app.clock.now()` is the only source of time); every state change goes
-through a service function that writes its event in the same transaction; all thresholds, SLA tables and department
-maps live in `backend/app/config.py`.
+## 6. Setup instructions and sample data
 
-```
-backend/app/      FastAPI app, config, models, clock, services/ (intake, dedup, routing, sla, verification, escalation)
-backend/app/api/  reports, tasks, admin (clock, stats, reset, seed), queries (read-side GETs)
-backend/scripts/  demo_scenario.py, seed_demo.py (default demo seed), seed.py (alternate seed + dataset)
-backend/tests/    in-memory SQLite + simulated clock, no sleeps
-frontend/src/     React + Vite + Tailwind + react-leaflet; pages, components, i18n (English / हिन्दी)
-docs/             demo-script.md
-CLAUDE.md, CONTEXT.md, DECISIONS.md   process rules, full spec, and the running decision log
+The app starts empty. Load the sample data with **Admin, then Load seed data**, or:
+
+```bash
+curl -X POST localhost:8000/api/admin/seed      # or: cd backend && python scripts/seed_demo.py
 ```
 
-Main endpoints (all under `/api`): `POST /reports`, `GET /reports/{id}`, `GET /incidents`, `GET /incidents/{id}`,
-`GET /clusters/{id}`, `GET /tasks`, `GET /events`, `POST /tasks/{id}/start`, `POST /tasks/{id}/close`,
-`POST /tasks/{id}/verify-response`, `GET /admin/stats`, `GET|POST /admin/clock...`, `POST /admin/tick|reset|seed`.
+- **Default seed (`backend/scripts/seed_demo.py`):** 12 incidents at real New Delhi localities (Pragati Maidan,
+  Bengali Market, Connaught Place, ITO, India Gate, Patel Chowk, Mandi House, ...), built only through the public
+  services with a back-dated clock: 3 verified closures, 1 low-confidence closure, 1 in progress, 1 reopened,
+  1 escalated, 1 near its deadline, 1 pothole with 4 duplicate reports, and 1 blocked dependency pair. The live demo
+  happens at Gurudwara Bangla Sahib on Ashoka Road, well clear of all of them.
+- **Alternate dataset (`seed/complaints.json`, `backend/scripts/seed.py`):** 40 realistic multilingual complaints
+  (English, Hinglish) with duplicate groups and scenarios; documented in `seed/README.md`.
+- **Start over:** Admin, *Reset demo* then *Load seed data*; or `POST /api/admin/reset`; or delete `backend/reesolve.db`.
+- A map of the demo incidents and the 4-minute talk track are in [`docs/demo-script.md`](docs/demo-script.md).
 
-## Credits
+## 7. Repository layout
 
-- **Main developer (Shadow4335):** repository scaffold, data model, intake, dedup and clustering, assignment, SLA and
-  escalation engine, verification and reopen engine, admin endpoints, the scripted demo, and the frontend.
-- **Aden:** the read-side query router (`backend/app/api/queries.py`).
-- **Sejal Kundnani:** the seed dataset and seed script (`backend/scripts/seed.py`, `seed/`).
-- **Harshita Khandelwal:** the SLA badge component (`frontend/src/components/SlaBadge.jsx`).
-- **UI design reference:** **Harshita Khandelwal and Sejal Kundnani** shared the demo interface design
-  ([neighborly-city-pulse.lovable.app](https://neighborly-city-pulse.lovable.app)) that the resident screens (Overview,
-  Report a problem, City projects, My requests) were modelled on. The interface was later re-themed.
+```
+reesolve/
+├── README.md
+├── LICENSE                 MIT
+├── .gitignore
+├── .env.example            placeholders only; a real .env is gitignored
+├── CLAUDE.md, CONTEXT.md   build process rules and the full specification
+├── DECISIONS.md            running decision log, known issues
+├── docs/
+│   ├── architecture.png    (source: architecture.svg)
+│   ├── demo-script.md      human talk track for the live demo
+│   └── screenshots/
+├── backend/                FastAPI + SQLAlchemy + SQLite
+│   ├── app/                config, models, clock, schemas, scheduler
+│   │   ├── api/            reports, tasks, admin, queries (routers)
+│   │   └── services/       intake, dedup, clusters, routing, sla, verification, escalation, events, stats
+│   ├── scripts/            demo_scenario.py, seed_demo.py, seed.py
+│   └── tests/              105 tests (in-memory SQLite + simulated clock, no sleeps)
+├── frontend/               React + Vite + Tailwind + react-leaflet
+│   └── src/                pages/, components/, auth/, lib/, i18n.js
+└── seed/                   alternate complaint dataset and its README
+```
 
-## Known limits
+## 8. Team contributions
 
-- Demo-only sign-in; the backend has no authentication, so the clock and reset endpoints are open.
-- Coordinates for the New Delhi demo data are approximate landmark positions (good to a few tens of metres).
-- The Hindi translation covers the chrome and main labels and should get a native-speaker review (see the comment at
-  the top of `frontend/src/i18n.js`). The SLA badge text is English only.
-- No photo upload endpoint (photos are pasted links), no real notifications, no map-tile fallback offline (the
-  rest of the app works without internet; the Noto Sans font falls back to system fonts).
-- The teammate-owned SLA badge keeps its own palette (`components/sla/sla.css`), which differs slightly from the theme.
+| Contributor | Contribution |
+|---|---|
+| **Main developer (Shadow4335)** | Repository scaffold, data model, intake, dedup and clustering, assignment, SLA and escalation engine, verification and reopen engine, admin endpoints, scripted demo, the frontend, docs |
+| **Aden** | The read-side query router (`backend/app/api/queries.py`) |
+| **Sejal Kundnani** | The seed dataset and seed script (`seed/`, `backend/scripts/seed.py`) |
+| **Harshita Khandelwal** | The SLA badge component (`frontend/src/components/SlaBadge.jsx`) |
+| **Harshita Khandelwal and Sejal Kundnani** | The demo interface design ([neighborly-city-pulse.lovable.app](https://neighborly-city-pulse.lovable.app)) that the resident screens (Overview, Report a problem, City projects, My requests) were modelled on. The interface was later re-themed. |
+
+## 9. Known limitations
+
+- **Demo-only sign-in.** The backend has no authentication, so the clock and reset endpoints are open.
+- **Approximate coordinates.** The New Delhi demo locations are landmark positions good to a few tens of metres.
+- **Simulated verification.** Citizens answer through the UI; there is no real SMS, email or notification.
+- **No photo upload.** Photos are pasted links. The optional LLM intake and photo checks from the spec are not built.
+- **Hindi needs review.** It covers the chrome and main labels; a native speaker should check it (see the note at the
+  top of `frontend/src/i18n.js`). The SLA badge text is English only.
+- **Teammate-owned SLA badge** keeps its own palette and pulse animation (`components/sla/sla.css`), which differ
+  slightly from the theme. More in `DECISIONS.md`, "Known issues at freeze".
+- **Map tiles need internet.** Everything else works offline; fonts fall back to system fonts.
+
+## License
+
+[MIT](LICENSE). Prototype built for a hackathon.

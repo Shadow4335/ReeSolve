@@ -8,3 +8,8 @@ backend/uploads/*
 node_modules/
 dist/
 .pytest_cache/
+
+# secrets: never commit a real environment file (only .env.example, which holds placeholders)
+.env
+.env.*
+!.env.example
