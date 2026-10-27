@@ -100,7 +100,7 @@ export default function Overview({ go }) {
 
       <section className="mt-10 pb-6">
         <SectionTitle right={<Chip tone="warn" dot={false}>{openNearby} open nearby</Chip>}>Reports near you</SectionTitle>
-        <p className="-mt-2 mb-3 text-sm text-muted-foreground">Demo area</p>
+        <p className="-mt-2 mb-3 text-sm text-muted-foreground">Central New Delhi</p>
         <Card className="p-3">
           <MiniMap incidents={list} />
           <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 px-1 text-xs text-muted-foreground">

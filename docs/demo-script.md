@@ -25,10 +25,32 @@ Everything works offline; map tiles are the only thing that need the internet.
 
 ---
 
+## Where things are on the map (New Delhi)
+
+The map opens on **Central New Delhi** (Sansad Marg / Patel Chowk). **Use demo location** drops the pin at **Gurudwara Bangla Sahib on Ashoka Road**, where the live storyline happens. The 12 baseline incidents sit at real localities, all at least 500 m from that spot:
+
+| Incident | Where |
+|---|---|
+| Verified pothole fix | Mathura Road, Pragati Maidan gate |
+| Verified garbage fix | Bengali Market |
+| Verified streetlight fix | Sunder Nagar |
+| Low-confidence drain closure | Barakhamba Road metro gate |
+| Escalated pothole (long overdue) | Connaught Place, outer circle |
+| Reopened road collapse | ITO crossing, Vikas Marg |
+| Road crack close to its deadline | Supreme Court, Tilak Marg |
+| Pothole with 4 reports (HIGH priority) | India Gate, Shahjahan Road |
+| Drain + pothole pair (blocked dependency) | Patel Chowk metro, Sansad Marg |
+| Streetlight in progress | Mandi House |
+| Fresh streetlight report | Krishi Bhawan, Rajpath |
+
+Vulnerable zones (priority bonus): **Dr Ram Manohar Lohia Hospital** and **Modern School, Barakhamba Road**.
+
+---
+
 ## Step 1. Five citizens report the same pothole (30 s)
 
 **Do:** Role = Resident, **Report a problem**. Pick **Roads & sidewalks**, click **Use demo location**, type
-*"Huge pothole on Rosewood Lane near the bakery"*, submit. Repeat 4 more times with different wording, nudging the pin a few metres.
+*"Huge pothole on Ashoka Road near Gurudwara Bangla Sahib"*, submit. Repeat 4 more times with different wording, nudging the pin a few metres.
 
 **Say:** "Citizens describe the same problem in different words. We don't create five tickets."
 
@@ -36,7 +58,7 @@ Everything works offline; map tiles are the only thing that need the internet.
 
 ## Step 2. A related problem 60 m away (30 s)
 
-**Do:** Submit *"Water pipe burst and leaking near Rosewood Lane bakery"* 60 m east of the pothole.
+**Do:** Submit *"Water pipe burst and leaking near Bangla Sahib Gurudwara on Ashoka Road"* 60 m east of the pothole.
 
 **Say:** "Different problem, same cause. The system links them and tells the departments what to do in which order."
 
@@ -68,7 +90,7 @@ Everything works offline; map tiles are the only thing that need the internet.
 
 ## Step 6. A new report after closure (40 s)
 
-**Do:** Roads closes again; confirm as 3 citizens (My requests → *Answering as reporter* → Yes, ×3 with different reporters) until *CLOSED / VERIFIED*. Then Resident → **Report a problem**: *"The pothole on Rosewood Lane is back"* at the same spot.
+**Do:** Roads closes again; confirm as 3 citizens (My requests → *Answering as reporter* → Yes, ×3 with different reporters) until *CLOSED / VERIFIED*. Then Resident → **Report a problem**: *"The pothole on Ashoka Road near Bangla Sahib Gurudwara is back"* at the same spot.
 
 **Say:** "Even after a verified closure, new evidence reopens the case. And if it keeps failing, it goes up the chain."
 

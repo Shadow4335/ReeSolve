@@ -1,5 +1,6 @@
 import pytest
 
+from app import config
 from app.models import Event, Incident, Report
 from app.services.intake import structure_report
 from app.services.reports import submit_report
@@ -40,7 +41,8 @@ def test_submit_report_creates_report_incident_events(db):
 
 def test_vulnerable_zone_raises_priority(db):
     plain = submit_report(db, "dangerous pothole on road", 28.6300, 77.2300)["incident"]
-    zone = submit_report(db, "dangerous pothole on road", 28.6100, 77.2050)["incident"]
+    hospital = config.VULNERABLE_ZONES[0]  # first zone: Dr Ram Manohar Lohia Hospital
+    zone = submit_report(db, "dangerous pothole on road", hospital["lat"], hospital["lng"])["incident"]
     assert not plain.in_vulnerable_zone and zone.in_vulnerable_zone
     assert plain.priority == "MEDIUM" and zone.priority == "HIGH"
 

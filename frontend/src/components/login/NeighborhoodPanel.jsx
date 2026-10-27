@@ -18,7 +18,7 @@ export default function NeighborhoodPanel({ compact = false }) {
     <div className={`relative overflow-hidden rounded-xl border border-border bg-navy-50 ${compact ? 'h-48' : 'h-full min-h-[34rem]'}`}>
       <div className={`relative z-10 ${compact ? 'p-5' : 'p-10'}`}>
         <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-navy-700">
-          <Icon name="pin" className="h-3.5 w-3.5" /> Maplewood · Central ward
+          <Icon name="pin" className="h-3.5 w-3.5" /> New Delhi · Central district
         </p>
         <div key={i} className={`animate-fade-in ${compact ? 'mt-2 flex items-baseline gap-2' : 'mt-3'}`} aria-live="off">
           <p className={`font-bold leading-none text-navy-900 ${compact ? 'text-3xl' : 'text-6xl'}`}>{big}</p>

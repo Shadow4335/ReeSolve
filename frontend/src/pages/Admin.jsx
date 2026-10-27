@@ -4,6 +4,7 @@ import { api } from '../api'
 import { usePolling } from '../hooks'
 import EventBadge, { fmtTs } from '../components/EventBadge'
 import { CustomHours, notifyClock } from '../components/FastForward'
+import FitIncidents from '../components/FitIncidents'
 import { Button, Card, PageHeader, StatusKey } from '../components/ui'
 import { DEMO_CENTER } from '../constants'
 import { useT } from '../i18n'
@@ -35,6 +36,7 @@ function IncidentMap({ incidents }) {
         attribution="&copy; OpenStreetMap contributors"
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+      <FitIncidents incidents={incidents} />
       {Object.entries(byCluster).map(([id, members]) =>
         members.slice(1).map((m, k) => (
           <Polyline

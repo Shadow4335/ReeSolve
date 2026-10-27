@@ -139,11 +139,11 @@ def main() -> int:
     # ---- 1. duplicates -----------------------------------------------------------------------------------------
     banner(1, "Five citizens report the same pothole -> ONE incident (explainable dedup)")
     texts = [
-        ("Huge pothole on Rosewood Lane near the bakery", 0, 0, "Asha"),
-        ("Dangerous pothole on Rosewood Lane by the bakery, a scooter fell", 8, 4, "Ravi"),
-        ("There is a big pothole on Rosewood Lane outside the bakery", -12, 6, "Meera"),
-        ("Rosewood Lane pothole near the bakery is dangerous for bikes", 20, -10, "Imran"),
-        ("Pothole on Rosewood Lane next to the bakery, please fix it", -15, -12, "Sunita"),
+        ("Huge pothole on Ashoka Road near Gurudwara Bangla Sahib", 0, 0, "Harpreet Kaur"),
+        ("Dangerous pothole on Ashoka Road by Bangla Sahib Gurudwara, a scooter fell", 8, 4, "Rohit Mehra"),
+        ("There is a big pothole on Ashoka Road outside Bangla Sahib Gurudwara", -12, 6, "Meera Joshi"),
+        ("Ashoka Road pothole near Bangla Sahib Gurudwara is dangerous for bikes", 20, -10, "Imran Qureshi"),
+        ("Pothole on Ashoka Road next to Bangla Sahib Gurudwara, please fix it", -15, -12, "Sunita Devi"),
     ]
     results = [submit(api, *t) for t in texts]
     pothole = results[0]["incident"]
@@ -161,7 +161,7 @@ def main() -> int:
 
     # ---- 2. related incident -----------------------------------------------------------------------------------
     banner(2, "A water leak 60 m away -> related cluster, Roads task BLOCKED behind Water")
-    leak_res = submit(api, "Water pipe burst and leaking near Rosewood Lane bakery", 0, 60, "Kiran")
+    leak_res = submit(api, "Water pipe burst and leaking near Bangla Sahib Gurudwara on Ashoka Road", 0, 60, "Kiran Malhotra")
     lid = leak_res["incident"]["id"]
     FOCUS.add(lid)
     cluster = leak_res["cluster"]
@@ -229,7 +229,7 @@ def main() -> int:
     print("  ... shortly after, another citizen reports the pothole at the same spot:")
     api.post("/admin/clock/advance", {"hours": 2})
     show_new_events(api, set())
-    submit(api, "The pothole on Rosewood Lane near the bakery is back, worse than before", 5, -3, "Farah")
+    submit(api, "The pothole on Ashoka Road near Bangla Sahib Gurudwara is back, worse than before", 5, -3, "Farah Siddiqui")
     task = task_of(api, pid)
     check(task["reopen_count"] == 2, f"reopen_count == 2 (got {task['reopen_count']})")
     check(task["escalation_level"] >= 2, f"forced escalation to {task['escalation_level_label']}")

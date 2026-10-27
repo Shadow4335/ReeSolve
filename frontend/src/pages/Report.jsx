@@ -146,7 +146,7 @@ export default function Report({ category, onFollow }) {
         <Step n={2} title="Where is it?" sub="A street name, nearby landmark, or your current location.">
           <label className="text-sm font-medium">Location</label>
           <div className="mt-1 flex flex-wrap gap-2">
-            <input className={`${input} min-w-[220px] flex-1`} placeholder="e.g. Neem Lane, opposite the bakery" value={landmark} onChange={(e) => setLandmark(e.target.value)} />
+            <input className={`${input} min-w-[220px] flex-1`} placeholder="e.g. Ashoka Road, opposite Gurudwara Bangla Sahib" value={landmark} onChange={(e) => setLandmark(e.target.value)} />
             <Button type="button" variant="soft" onClick={useMyLocation}><Icon name="locate" className="h-4 w-4" /> Use my location</Button>
             <Button type="button" variant="soft" onClick={() => move(DEMO_SCENARIO_ORIGIN, true)}><Icon name="pin" className="h-4 w-4" /> Use demo location</Button>
           </div>
@@ -166,7 +166,7 @@ export default function Report({ category, onFollow }) {
           <label className="text-sm font-medium">Description</label>
           <textarea
             className={`${input} mt-1 h-28`} value={text} onChange={(e) => setText(e.target.value)}
-            placeholder={picked?.example || 'Huge pothole on Rosewood Lane near the bakery'}
+            placeholder={picked?.example || 'Huge pothole on Ashoka Road near Gurudwara Bangla Sahib'}
           />
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <div><label className="text-sm font-medium">Your name (optional)</label><input className={`${input} mt-1`} value={name} onChange={(e) => setName(e.target.value)} /></div>

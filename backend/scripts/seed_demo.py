@@ -1,11 +1,13 @@
-"""Demo-tuned baseline data (main dev): 12 incidents around the demo area, quiet under early clock jumps, re-runnable.
+"""Demo-tuned baseline data (main dev): 12 incidents at real New Delhi localities, quiet under early clock jumps,
+re-runnable.
 
 Alternative to scripts/seed.py (teammate-owned). Importable as `seed(db)` and runnable
-as `python scripts/seed_demo.py`. Every incident sits >= SEED_MIN_DISTANCE_FROM_SCENARIO_M from DEMO_SCENARIO_ORIGIN.
+as `python scripts/seed_demo.py`. Every incident sits >= SEED_MIN_DISTANCE_FROM_SCENARIO_M from DEMO_SCENARIO_ORIGIN
+(Gurudwara Bangla Sahib, Ashoka Road), clear of the vulnerable zones, inside the default map view.
+Coordinates are approximate landmark positions (good to a few tens of metres), which is what a pin needs.
 """
 import sys
 from collections.abc import Callable
-from math import cos, radians
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -19,13 +21,28 @@ from app.services import sla, verification  # noqa: E402
 from app.services.reports import submit_report  # noqa: E402
 from app.services.routing import primary_task, start_task  # noqa: E402
 
-CLC, CLN = config.DEMO_CENTER
 HOURS_BACK = 170
 STEP_HOURS = 4
 
+# Real New Delhi localities (lat, lng).
+PLACES = {
+    "A": (28.6178, 77.2430),   # Pragati Maidan gate, Mathura Road
+    "B": (28.6285, 77.2338),   # Bengali Market
+    "C": (28.6045, 77.2438),   # Sunder Nagar
+    "D": (28.6296, 77.2225),   # Barakhamba Road metro gate
+    "K": (28.6330, 77.2185),   # Connaught Place, outer circle
+    "G": (28.6290, 77.2405),   # ITO crossing, Vikas Marg
+    "F": (28.6227, 77.2406),   # Supreme Court, Tilak Marg
+    "H": (28.6118, 77.2318),   # India Gate, Shahjahan Road
+    "I": (28.6215, 77.2130),   # Patel Chowk metro, Sansad Marg
+    "E": (28.6258, 77.2343),   # Mandi House
+    "J": (28.6137, 77.2050),   # Krishi Bhawan, Rajpath
+}
 
-def _pos(north_m: float, east_m: float) -> tuple[float, float]:
-    return CLC + north_m / 111_195, CLN + east_m / (111_195 * cos(radians(CLC)))
+
+def _shift(lat: float, lng: float, north_m: float) -> tuple[float, float]:
+    """Move a point `north_m` metres north (used to nudge duplicate reports and to place the blocked pothole)."""
+    return lat + north_m / 111_195, lng
 
 
 def seed(db: Session) -> None:
@@ -44,9 +61,9 @@ def seed(db: Session) -> None:
             sla.run_watchdog(db)
             db.commit()
 
-    def report(key: str, text: str, north: float, east: float, name: str = "Resident") -> Callable[[], None]:
+    def report(key: str, text: str, place: str, name: str = "Resident", north_m: float = 0.0) -> Callable[[], None]:
         def run() -> None:
-            lat, lng = _pos(north, east)
+            lat, lng = _shift(*PLACES[place], north_m)
             assert haversine_m(lat, lng, *config.DEMO_SCENARIO_ORIGIN) >= config.SEED_MIN_DISTANCE_FROM_SCENARIO_M
             res = submit_report(db, text, lat, lng, reporter_name=name)
             handles.setdefault(key, res["incident"])
@@ -75,44 +92,44 @@ def seed(db: Session) -> None:
         return run
 
     pothole_n = [
-        "Dangerous pothole on Aspen Road, a bike nearly crashed",
-        "Aspen Road pothole is getting worse, dangerous for scooters",
-        "Deep dangerous pothole near Aspen Road bus stop",
-        "Pothole on Aspen Road, an accident waiting to happen",
+        ("Dangerous pothole on Shahjahan Road near India Gate, a bike nearly crashed", "Harpreet Kaur"),
+        ("Shahjahan Road pothole by India Gate is getting worse, dangerous for scooters", "Rohit Mehra"),
+        ("Deep dangerous pothole near the India Gate lawns on Shahjahan Road", "Neha Gupta"),
+        ("Pothole on Shahjahan Road near India Gate, an accident waiting to happen", "Imran Qureshi"),
     ]
     # Timing rule: every running baseline task keeps >= ~28h of SLA left (except F, deliberately at the warning
     # point), so the demo's early clock jumps do not trip unrelated tasks.
     timeline: list[tuple[float, Callable[[], None]]] = [
         # verified closures
-        (-120, report("A", "Large pothole on the road outside Cedar Market, two-wheelers are slipping", -100, -250)),
+        (-120, report("A", "Large pothole on Mathura Road near Pragati Maidan gate, two-wheelers are slipping", "A", "Anil Bhatia")),
         (-115, start("A")), (-100, close("A")), (-96, respond("A", True)),
-        (-110, report("B", "Garbage dump overflowing next to the Maple Ward bus stop", -100, 250)),
+        (-110, report("B", "Garbage dump overflowing next to the Bengali Market bus stop", "B", "Sunita Devi")),
         (-105, start("B")), (-80, close("B")), (-70, respond("B", True)),
-        (-100, report("C", "Street light on Orchard Lane has been out for days, the lane is dark", -350, 0)),
+        (-100, report("C", "Street light on Sunder Nagar Main Road has been out for days, the lane is dark", "C", "Farah Siddiqui")),
         (-90, start("C")), (-60, close("C")), (-58, respond("C", True)),
         # closed with low confidence: nobody answers the verification request
-        (-100, report("D", "Drain outside Willow Court is clogged with sludge", -350, 300)),
+        (-100, report("D", "Drain outside Barakhamba Road metro gate is clogged with sludge", "D", "Vikram Singh")),
         (-95, start("D")), (-90, close("D")),
         # breached long ago and escalated by the watchdog (long road SLA keeps it quiet now)
-        (-151, report("K", "Large pothole at Linden Crossing, it has been there for weeks and nobody came", -100, 0)),
+        (-151, report("K", "Large pothole at Connaught Place outer circle, it has been there for weeks and nobody came", "K", "Meera Joshi")),
         # reopened once after a citizen said "not fixed"
-        (-60, report("G", "Road surface collapsed into a deep crack on Pine Street", -600, 300)),
+        (-60, report("G", "Road surface collapsed into a deep crack near ITO crossing on Vikas Marg", "G", "Arjun Nair")),
         (-55, start("G")), (-30, close("G")),
         (-2, respond("G", False, "Still a crater, the patch washed away")),
         # near its SLA warning point (deliberate: the "close to breach" example)
-        (-115.5, report("F", "Cracked road surface near Elm Street junction, vehicles are swerving", -600, 0)),
-        # duplicates raising priority
-        (-20, report("H", pothole_n[0], -600, -300, "Resident 1")),
-        (-18, report("H", pothole_n[1], -600 + 1.1, -300, "Resident 2")),
-        (-16, report("H", pothole_n[2], -600 + 1.9, -300, "Resident 3")),
-        (-14, report("H", pothole_n[3], -600 + 2.2, -300, "Resident 4")),
-        # cluster pair: clogged drain upstream, road blocked behind it
-        (-0.5, report("I", "Drain near Cypress Square is clogged and overflowing", -850, -100)),
-        (-0.4, report("IR", "Large pothole and cracked road near Cypress Square", -790, -100)),
+        (-115.5, report("F", "Cracked road surface near the Supreme Court on Tilak Marg, vehicles are swerving", "F", "Kavita Rao")),
+        # duplicates raising priority (India Gate)
+        (-20, report("H", pothole_n[0][0], "H", pothole_n[0][1])),
+        (-18, report("H", pothole_n[1][0], "H", pothole_n[1][1], north_m=1.1)),
+        (-16, report("H", pothole_n[2][0], "H", pothole_n[2][1], north_m=1.9)),
+        (-14, report("H", pothole_n[3][0], "H", pothole_n[3][1], north_m=2.2)),
+        # cluster pair at Patel Chowk: clogged drain upstream, road blocked behind it (60 m apart)
+        (-0.5, report("I", "Drain near Patel Chowk metro station is clogged and overflowing", "I", "Deepak Verma")),
+        (-0.4, report("IR", "Large pothole and cracked road near Patel Chowk metro station", "I", "Pooja Malhotra", north_m=60)),
         # in progress, and a fresh report
-        (-10, report("E", "Street light on Birch Road is out, the whole stretch is dark", -350, -300)),
+        (-10, report("E", "Street light near Mandi House roundabout is out, the whole stretch is dark", "E", "Sanjay Kapoor")),
         (-8, start("E")),
-        (-2, report("J", "Street light not working near Hazel Park, very dark at night", -850, 250)),
+        (-2, report("J", "Street light not working near Krishi Bhawan on Rajpath, very dark at night", "J", "Ritu Agarwal")),
     ]
     clock.advance(-HOURS_BACK, db)
     db.commit()

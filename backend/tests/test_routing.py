@@ -37,7 +37,8 @@ def test_primary_task_created_with_sla(db):
 
 
 def test_high_priority_halves_sla(db):
-    r = submit_report(db, "Dangerous pothole accident on the road", 28.6100, 77.2050)  # in hospital zone
+    hospital = config.VULNERABLE_ZONES[0]
+    r = submit_report(db, "Dangerous pothole accident on the road", hospital["lat"], hospital["lng"])  # in hospital zone
     t = task_of(r)
     assert r["incident"].priority == "HIGH" and t.base_sla_hours == 72
 

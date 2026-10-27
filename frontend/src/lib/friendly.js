@@ -1,12 +1,12 @@
 // Plain-language labels for residents. The technical reason line from the audit log is always kept as a "why".
 export const REPORT_CATEGORIES = [
-  { key: 'roads', hint: 'road_damage', title: 'Roads & sidewalks', sub: 'Potholes, cracks, broken paths', icon: 'road', example: 'Huge pothole on Rosewood Lane near the bakery' },
-  { key: 'electricity', hint: 'streetlight', title: 'Electricity & streetlights', sub: 'Outages, dark streets', icon: 'bulb', example: 'Street light on Orchard Lane has been out for days' },
-  { key: 'water', hint: 'water', title: 'Water & drainage', sub: 'Leaks, blocked drains, flooding', icon: 'drop', example: 'Water pipe burst and leaking near the corner shop' },
-  { key: 'waste', hint: 'garbage', title: 'Waste', sub: 'Missed pickup, overflowing bins', icon: 'trash', example: 'Garbage dump not cleared for a week' },
-  { key: 'parks', hint: 'other', title: 'Parks', sub: 'Damaged benches, paths, greenery', icon: 'tree', example: 'Broken bench in the park' },
-  { key: 'facilities', hint: 'other', title: 'Public facilities', sub: 'Toilets, bus stops, buildings', icon: 'building', example: 'Bus stop shelter roof is damaged' },
-  { key: 'construction', hint: 'other', title: 'Construction', sub: 'Unsafe sites, debris, noise', icon: 'cone', example: 'Debris left on the road from a building site' },
+  { key: 'roads', hint: 'road_damage', title: 'Roads & sidewalks', sub: 'Potholes, cracks, broken paths', icon: 'road', example: 'Huge pothole on Ashoka Road near Gurudwara Bangla Sahib' },
+  { key: 'electricity', hint: 'streetlight', title: 'Electricity & streetlights', sub: 'Outages, dark streets', icon: 'bulb', example: 'Street light near Khan Market has been out for days' },
+  { key: 'water', hint: 'water', title: 'Water & drainage', sub: 'Leaks, blocked drains, flooding', icon: 'drop', example: 'Water pipe burst and leaking on Janpath near Connaught Place' },
+  { key: 'waste', hint: 'garbage', title: 'Waste', sub: 'Missed pickup, overflowing bins', icon: 'trash', example: 'Garbage dump near Sarojini Nagar market not cleared for a week' },
+  { key: 'parks', hint: 'other', title: 'Parks', sub: 'Damaged benches, paths, greenery', icon: 'tree', example: 'Broken bench in Lodhi Garden' },
+  { key: 'facilities', hint: 'other', title: 'Public facilities', sub: 'Toilets, bus stops, buildings', icon: 'building', example: 'Bus stop shelter at ITO crossing is damaged' },
+  { key: 'construction', hint: 'other', title: 'Construction', sub: 'Unsafe sites, debris, noise', icon: 'cone', example: 'Debris left on Barakhamba Road from a building site' },
 ]
 
 export const requestId = (incidentId) => `RS-${1000 + incidentId}`

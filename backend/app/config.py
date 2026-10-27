@@ -89,14 +89,16 @@ MAX_SEVERITY = 5
 SUMMARY_MAX_CHARS = 120
 
 # --- 4.9 demo geography -------------------------------------------------------------
-DEMO_CENTER = (28.6139, 77.2090)
-DEMO_SCENARIO_ORIGIN = (28.6211, 77.2090)  # ~800 m north of DEMO_CENTER
+# Real New Delhi geography. DEMO_CENTER is the map's default view (Central New Delhi, Sansad Marg / Patel Chowk).
+DEMO_CENTER = (28.6192, 77.2090)
+# Where the live storyline happens: Gurudwara Bangla Sahib on Ashoka Road, ~800 m north of DEMO_CENTER.
+DEMO_SCENARIO_ORIGIN = (28.6264, 77.2090)
 SEED_MIN_DISTANCE_FROM_SCENARIO_M = 500
 
-# Fictional vulnerable zones (hospital, school), kept clear of DEMO_SCENARIO_ORIGIN.
+# Vulnerable zones (hospital, school): real institutions, kept well clear of DEMO_SCENARIO_ORIGIN.
 VULNERABLE_ZONES = [
-    {"name": "Riverside General Hospital", "lat": 28.6100, "lng": 77.2050, "radius_m": 200},
-    {"name": "Lakeview Public School", "lat": 28.6170, "lng": 77.2140, "radius_m": 150},
+    {"name": "Dr Ram Manohar Lohia Hospital", "lat": 28.6256, "lng": 77.2000, "radius_m": 200},
+    {"name": "Modern School, Barakhamba Road", "lat": 28.6305, "lng": 77.2258, "radius_m": 150},
 ]
 
 DB_URL = "sqlite:///./reesolve.db"

@@ -137,13 +137,13 @@ Config dict mapping category → keyword list (e.g. pothole/road/crack/gadda →
 ### 4.9 Demo geography
 
 ```
-DEMO_CENTER = (28.6139, 77.2090)          # map default center
-DEMO_SCENARIO_ORIGIN = <a point ~800 m from DEMO_CENTER>   # where demo_scenario.py places its pothole + leak
+DEMO_CENTER = (28.6192, 77.2090)          # map default center: Central New Delhi (Sansad Marg / Patel Chowk)
+DEMO_SCENARIO_ORIGIN = (28.6264, 77.2090)  # Gurudwara Bangla Sahib, Ashoka Road (~800 m from DEMO_CENTER): where demo_scenario.py places its pothole + leak
 SEED_MIN_DISTANCE_FROM_SCENARIO_M = 500   # the seed script must keep baseline incidents at least this far from DEMO_SCENARIO_ORIGIN
 
 ```
 
-Use fictional ward and street names. The seed script (teammate-owned) reads these constants; do not hard-code coordinates elsewhere.
+Use real New Delhi localities (Connaught Place, India Gate, Mandi House, ...) at their real positions. The seed script (teammate-owned) reads these constants; do not hard-code coordinates elsewhere.
 
 ## 5. Data model (SQLAlchemy models; SQLite)
 

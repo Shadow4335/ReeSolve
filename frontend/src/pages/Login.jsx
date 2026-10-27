@@ -14,7 +14,7 @@ import { navigate, splitLocation, useLocation } from '../router'
 
 const ROLE_KEYS = [['citizen', 'login.resident'], ['department', 'login.staff'], ['admin', 'login.admin']]
 const DEMOS = [
-  { key: 'login.tryResident', role: 'citizen', values: { name: 'Asha (demo resident)' } },
+  { key: 'login.tryResident', role: 'citizen', values: { name: 'Anjali Sharma (demo resident)' } },
   { key: 'login.tryRoads', role: 'department', values: { name: 'Roads desk (demo)', department: 'ROADS' } },
   { key: 'login.tryAdmin', role: 'admin', values: { name: 'City admin (demo)', code: DEMO_ADMIN_CODE } },
 ]
