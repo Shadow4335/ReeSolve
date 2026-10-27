@@ -1,4 +1,5 @@
 """All thresholds, SLA tables, department maps and related-category rules (CONTEXT.md section 4)."""
+import os
 
 # --- 4.1 categories -> departments -------------------------------------------------
 CATEGORIES = ["road_damage", "water_leak", "drain_blockage", "garbage", "streetlight", "other"]
@@ -101,5 +102,10 @@ VULNERABLE_ZONES = [
     {"name": "Modern School, Barakhamba Road", "lat": 28.6305, "lng": 77.2258, "radius_m": 150},
 ]
 
-DB_URL = "sqlite:///./reesolve.db"
-CORS_ORIGINS = ["http://localhost:5173"]
+# Deployment settings, read from the process environment (the backend does not load .env files).
+# Defaults are the local development values, so nothing changes unless a variable is set.
+DB_URL = os.environ.get("DB_URL", "sqlite:///./reesolve.db")
+# Comma-separated list of browser origins allowed to call the API, e.g. "https://reesolve.vercel.app".
+CORS_ORIGINS = [o.strip() for o in os.environ.get("CORS_ORIGINS", "http://localhost:5173").split(",") if o.strip()]
+# Load the demo seed on startup when the database is empty (for hosts whose disk resets, e.g. Render's free tier).
+AUTO_SEED = os.environ.get("AUTO_SEED", "").strip().lower() in ("1", "true", "yes")

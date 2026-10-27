@@ -127,6 +127,13 @@ python scripts/demo_scenario.py             # resets, seeds, then runs the 7-ste
 python scripts/demo_scenario.py --pause 4   # waits 4 s between steps, for live narration
 ```
 
+### Deploy (Render + Vercel)
+
+The frontend deploys to **Vercel** and the backend to **Render's free tier** (the backend needs one long-running
+process, which Vercel's serverless functions cannot provide). The repository ships `render.yaml` and
+`frontend/vercel.json`; step-by-step instructions, environment variables and troubleshooting are in
+[`docs/deployment.md`](docs/deployment.md).
+
 ## 6. Setup instructions and sample data
 
 The app starts empty. Load the sample data with **Admin, then Load seed data**, or:
@@ -190,6 +197,8 @@ reesolve/
   top of `frontend/src/i18n.js`). The SLA badge text is English only.
 - **Teammate-owned SLA badge** keeps its own palette and pulse animation (`components/sla/sla.css`), which differ
   slightly from the theme. More in `DECISIONS.md`, "Known issues at freeze".
+- **Free-tier hosting sleeps and resets.** On Render's free tier the backend sleeps when idle and its disk resets, so
+  live changes are lost on restart (the demo data reloads automatically).
 - **Map tiles need internet.** Everything else works offline; fonts fall back to system fonts.
 
 ## License

@@ -13,3 +13,6 @@ dist/
 .env
 .env.*
 !.env.example
+
+# Vercel CLI project link (created by `vercel link`)
+.vercel

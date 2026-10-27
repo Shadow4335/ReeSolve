@@ -11,13 +11,18 @@ from app.api import queries as queries_api
 from app.api import reports as reports_api
 from app.api import tasks as tasks_api
 from app import scheduler
-from app.db import init_db
+from app.db import SessionLocal, init_db
 from app.services.errors import InvalidTransition, NotFound
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     init_db()
+    if config.AUTO_SEED:
+        from scripts.seed_demo import seed  # idempotent: does nothing when incidents already exist
+
+        with SessionLocal() as db:
+            seed(db)
     sched = scheduler.start()
     yield
     sched.shutdown(wait=False)
